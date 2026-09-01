@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Teste BlipChat — auth</title>
+  <style>
+    html, body { height: 100%; margin: 0; background: #fff;
+      font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    #chat { position: fixed; top: 34px; left: 0; right: 0; bottom: 0; }
+    #chat iframe { width: 100% !important; height: 100% !important; border: none !important; }
+    #debug {
+      position: fixed; top: 0; left: 0; right: 0; height: 34px;
+      display: flex; align-items: center; gap: 14px;
+      padding: 0 10px; box-sizing: border-box;
+      background: #1c1c1c; color: #d6d6d6;
+      font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px;
+      overflow-x: auto; white-space: nowrap; z-index: 10;
+    }
+    #debug b { color: #fff; font-weight: 600; }
+    #debug .mode-dev { color: #ff8a65; }
+    #debug .mode-guest { color: #81c784; }
+  </style>
+</head>
+<body>
+
+  <div id="debug"></div>
+  <div id="chat"></div>
+
+  <script src="https://unpkg.com/blip-chat-widget" type="text/javascript"></script>
+  <script>
+  (function () {
+    window.onload = function () {
+
+      var APP_KEY    = 'dGVzdGV3ZWJjaGF0NTo1MzFmOWE3NS0xYTg5LTRmYWYtODYwNy0wZjZiZWIwZTgwY2E=';
+      var COMMON_URL = 'https://intelbras.chat.blip.ai/';
+
+      var p     = new URLSearchParams(location.search);
+      var modo  = (p.get('auth') || 'guest').toLowerCase();  // guest | dev
+      var phone = p.get('phone') || '';
+      var id    = p.get('id')  || phone;          // userIdentity
+      var pwd   = p.get('k')   || (phone ? btoa(phone) : ''); // userPassword
+
+      var chat = new BlipChat()
+        .withAppKey(APP_KEY)
+        .withCustomCommonUrl(COMMON_URL)
+        .withTarget('chat');
+
+      if (modo === 'dev' && id) {
+        chat.withAuth({
+          authType: BlipChat.DEV_AUTH,
+          userIdentity: id,
+          userPassword: pwd
+        });
+      }
+
+      if (phone) {
+        chat.withAccount({
+          phoneNumber: phone.charAt(0) === '+' ? phone : '+' + phone,
+          extras: { origem: 'teste', telefoneWhatsapp: phone }
+        });
+      }
+
+      // Barra de diagnostico: mostra exatamente o que foi enviado ao widget.
+      document.getElementById('debug').innerHTML =
+        '<span class="mode-' + (modo === 'dev' ? 'dev' : 'guest') + '"><b>' +
+        (modo === 'dev' ? 'DEV_AUTH' : 'GUEST') + '</b></span>' +
+        '<span>identity: <b>' + (modo === 'dev' ? (id || '(vazio)') : '(automatica)') + '</b></span>' +
+        '<span>password: <b>' + (modo === 'dev' ? (pwd || '(vazio)') : '-') + '</b></span>' +
+        '<span>phone: <b>' + (phone || '-') + '</b></span>';
+
+      chat.build();
+    };
+  })();
+  </script>
+</body>
+</html>
