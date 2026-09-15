@@ -1,77 +1,218 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Teste BlipChat — auth</title>
-  <style>
-    html, body { height: 100%; margin: 0; background: #fff;
-      font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
-    #chat { position: fixed; top: 34px; left: 0; right: 0; bottom: 0; }
-    #chat iframe { width: 100% !important; height: 100% !important; border: none !important; }
-    #debug {
-      position: fixed; top: 0; left: 0; right: 0; height: 34px;
-      display: flex; align-items: center; gap: 14px;
-      padding: 0 10px; box-sizing: border-box;
-      background: #1c1c1c; color: #d6d6d6;
-      font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px;
-      overflow-x: auto; white-space: nowrap; z-index: 10;
-    }
-    #debug b { color: #fff; font-weight: 600; }
-    #debug .mode-dev { color: #ff8a65; }
-    #debug .mode-guest { color: #81c784; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Teste de metadados — Blip Chat Widget</title>
+<style>
+  :root {
+    --bg: #12161c;
+    --panel: #1a2029;
+    --line: #2a323d;
+    --ink: #dfe5ec;
+    --dim: #8793a3;
+    --ok: #4ec98a;
+    --warn: #e0a640;
+    --accent: #0096fa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 24px 20px 80px;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 700px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+  .sub { color: var(--dim); margin: 0 0 28px; font-size: 14px; }
+
+  .keyline {
+    display: flex; gap: 10px; align-items: baseline;
+    padding: 10px 14px; margin-bottom: 26px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
+  }
+  .keyline span { color: var(--dim); }
+  .keyline b { color: var(--accent); font-weight: 600; }
+
+  .test { border-top: 1px solid var(--line); padding: 18px 0; }
+  .test:last-of-type { border-bottom: 1px solid var(--line); }
+  .test h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
+  .test p { margin: 0 0 12px; color: var(--dim); font-size: 14px; }
+  .test code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; color: var(--ink); background: #222a34;
+    padding: 1px 5px; border-radius: 3px;
+  }
+  .expect { color: var(--warn); }
+
+  button {
+    font: inherit; font-size: 14px;
+    padding: 8px 16px; border-radius: 5px; cursor: pointer;
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--line);
+  }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #05131f; font-weight: 600; }
+  button.primary:hover { color: #05131f; filter: brightness(1.1); }
+
+  #log {
+    margin-top: 28px; padding: 14px;
+    background: #0d1116; border: 1px solid var(--line); border-radius: 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px; line-height: 1.7;
+    max-height: 260px; overflow-y: auto;
+  }
+  #log div { color: var(--dim); }
+  #log div b { color: var(--ok); font-weight: 500; }
+</style>
 </head>
 <body>
+<main>
 
-  <div id="debug"></div>
-  <div id="chat"></div>
+  <h1>Teste de metadados — Blip Chat Widget</h1>
+  <p class="sub">Bot testewebchat5. Rode um teste por vez e confira o <code>input.message.metadata</code> no trace do Builder antes de passar pro próximo.</p>
 
-  <script src="https://unpkg.com/blip-chat-widget" type="text/javascript"></script>
-  <script>
-  (function () {
-    window.onload = function () {
+  <div class="keyline">
+    <span>ctxKey enviada no build:</span> <b id="ctxkey">—</b>
+  </div>
 
-      var APP_KEY    = 'dGVzdGV3ZWJjaGF0NTo1MzFmOWE3NS0xYTg5LTRmYWYtODYwNy0wZjZiZWIwZTgwY2E=';
-      var COMMON_URL = 'https://intelbras.chat.blip.ai/';
+  <section class="test">
+    <h2>1. Mensagem digitada pelo cliente</h2>
+    <p>Abra o chat e digite qualquer coisa à mão. Verifica se o <code>withCustomMessageMetadata</code> realmente chega ao bot nas mensagens do usuário — a peça central do desenho.</p>
+    <p class="expect">Esperado: metadata contém ctxKey e origem.</p>
+    <button class="primary" id="abrir">Abrir o chat</button>
+  </section>
 
-      var p     = new URLSearchParams(location.search);
-      var modo  = (p.get('auth') || 'guest').toLowerCase();  // guest | dev
-      var phone = p.get('phone') || '';
-      var id    = p.get('id')  || phone;          // userIdentity
-      var pwd   = p.get('k')   || (phone ? btoa(phone) : ''); // userPassword
+  <section class="test">
+    <h2>2. sendMessage sem metadata</h2>
+    <p>Mensagem programática, sem metadata próprio. Verifica se o metadado global vale também pras mensagens disparadas por código.</p>
+    <p class="expect">Esperado: metadata contém ctxKey e origem.</p>
+    <button id="t2">Enviar "ping-sem-metadata"</button>
+  </section>
 
-      var chat = new BlipChat()
-        .withAppKey(APP_KEY)
-        .withCustomCommonUrl(COMMON_URL)
-        .withTarget('chat');
+  <section class="test">
+    <h2>3. sendMessage com metadata</h2>
+    <p>Envia <code>#blip.hiddenMessage</code> e nada mais. Se a ctxKey aparecer junto, o widget mescla; se sumir, sobrescreve — e aí a ctxKey precisa ser repetida em toda hidden message.</p>
+    <p class="expect">Decisivo: ctxKey presente = mescla. Ausente = sobrescreve.</p>
+    <button id="t3">Enviar "ping-com-metadata" (oculta)</button>
+  </section>
 
-      if (modo === 'dev' && id) {
-        chat.withAuth({
-          authType: BlipChat.DEV_AUTH,
-          userIdentity: id,
-          userPassword: pwd
-        });
-      }
+  <section class="test">
+    <h2>4. Simulação do CTA</h2>
+    <p>Reproduz a jornada real: marca a flag, abre o chat e, no <code>LOAD_EVENT</code>, dispara <code>#recomendação</code> oculta com a ctxKey repetida.</p>
+    <p class="expect">Esperado: o roteador redireciona sem a palavra aparecer na tela.</p>
+    <button id="t4">Simular clique no pop-up</button>
+  </section>
 
-      if (phone) {
-        chat.withAccount({
-          phoneNumber: phone.charAt(0) === '+' ? phone : '+' + phone,
-          extras: { origem: 'teste', telefoneWhatsapp: phone }
-        });
-      }
+  <div id="log"><div>Carregando o widget…</div></div>
 
-      // Barra de diagnostico: mostra exatamente o que foi enviado ao widget.
-      document.getElementById('debug').innerHTML =
-        '<span class="mode-' + (modo === 'dev' ? 'dev' : 'guest') + '"><b>' +
-        (modo === 'dev' ? 'DEV_AUTH' : 'GUEST') + '</b></span>' +
-        '<span>identity: <b>' + (modo === 'dev' ? (id || '(vazio)') : '(automatica)') + '</b></span>' +
-        '<span>password: <b>' + (modo === 'dev' ? (pwd || '(vazio)') : '-') + '</b></span>' +
-        '<span>phone: <b>' + (phone || '-') + '</b></span>';
+</main>
 
-      chat.build();
-    };
-  })();
-  </script>
+<script src="https://unpkg.com/blip-chat-widget" type="text/javascript"></script>
+<script>
+(function () {
+  var APP_KEY = 'dGVzdGV3ZWJjaGF0NTo1MzFmOWE3NS0xYTg5LTRmYWYtODYwNy0wZjZiZWIwZTgwY2E=';
+  var COMMON_URL = 'https://intelbras.chat.blip.ai/';
+
+  var logEl = document.getElementById('log');
+  function log(msg) {
+    var t = new Date().toISOString().substr(11, 12);
+    var d = document.createElement('div');
+    d.innerHTML = t + '  <b>' + msg + '</b>';
+    logEl.appendChild(d);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  // Mesma lógica que a loja usaria: chave própria, persistida, independente do Blip.
+  function getCtxKey() {
+    var k = localStorage.getItem('intelbras.ctxKey');
+    if (!k) {
+      k = (crypto.randomUUID ? crypto.randomUUID()
+                             : String(Date.now()) + Math.random().toString(16).slice(2));
+      localStorage.setItem('intelbras.ctxKey', k);
+    }
+    return k;
+  }
+
+  var ctxKey = getCtxKey();
+  document.getElementById('ctxkey').textContent = ctxKey;
+
+  var client = new BlipChat();
+  var cameFromCTA = false;
+  var loaded = false;
+
+  client
+    .withAppKey(APP_KEY)
+    .withButton({ color: '#0096fa', icon: '' })
+    .withCustomCommonUrl(COMMON_URL)
+    .withCustomMessageMetadata({
+      ctxKey: ctxKey,
+      origem: 'webchat-loja'
+    })
+    .withEventHandler(BlipChat.LOAD_EVENT, function () {
+      loaded = true;
+      log('LOAD_EVENT');
+      if (!cameFromCTA) return;
+      cameFromCTA = false;
+      client.sendMessage({
+        type: 'text/plain',
+        content: '#recomendação',
+        metadata: {
+          '#blip.hiddenMessage': true,
+          ctxKey: ctxKey
+        }
+      });
+      log('CTA: #recomendação enviada (oculta)');
+    })
+    .withEventHandler(BlipChat.ENTER_EVENT, function () { log('ENTER_EVENT'); })
+    .withEventHandler(BlipChat.LEAVE_EVENT, function () { log('LEAVE_EVENT'); })
+    .withEventHandler(BlipChat.CREATE_ACCOUNT_EVENT, function () { log('CREATE_ACCOUNT_EVENT'); })
+    .build();
+
+  log('widget construído');
+
+  function requireLoaded() {
+    if (!loaded) { log('chat ainda não carregou — abra antes'); return false; }
+    return true;
+  }
+
+  document.getElementById('abrir').onclick = function () {
+    client.toogleChat();
+  };
+
+  document.getElementById('t2').onclick = function () {
+    if (!requireLoaded()) return;
+    client.sendMessage({ type: 'text/plain', content: 'ping-sem-metadata' });
+    log('teste 2 enviado');
+  };
+
+  document.getElementById('t3').onclick = function () {
+    if (!requireLoaded()) return;
+    client.sendMessage({
+      type: 'text/plain',
+      content: 'ping-com-metadata',
+      metadata: { '#blip.hiddenMessage': true }
+    });
+    log('teste 3 enviado');
+  };
+
+  document.getElementById('t4').onclick = function () {
+    cameFromCTA = true;
+    if (loaded) {
+      client.sendMessage({
+        type: 'text/plain',
+        content: '#recomendação',
+        metadata: { '#blip.hiddenMessage': true, ctxKey: ctxKey }
+      });
+      cameFromCTA = false;
+      log('CTA: #recomendação enviada (chat já carregado)');
+    }
+    client.toogleChat();
+  };
+})();
+</script>
 </body>
 </html>
