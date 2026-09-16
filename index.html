@@ -3,214 +3,512 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Teste de metadados — Blip Chat Widget</title>
+<title>Simulação ponta a ponta — Agente de fechaduras no webchat</title>
 <style>
   :root {
-    --bg: #12161c;
-    --panel: #1a2029;
+    --verde: #00a75d;
+    --verde-esc: #008a4d;
+    --bg: #0f1319;
+    --panel: #171d26;
     --line: #2a323d;
     --ink: #dfe5ec;
     --dim: #8793a3;
     --ok: #4ec98a;
     --warn: #e0a640;
-    --accent: #0096fa;
+    --err: #e06a5c;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    padding: 24px 20px 80px;
-    background: var(--bg);
-    color: var(--ink);
-    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0; padding: 20px;
+    background: var(--bg); color: var(--ink);
+    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   }
-  main { max-width: 700px; margin: 0 auto; }
-  h1 { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
-  .sub { color: var(--dim); margin: 0 0 28px; font-size: 14px; }
+  .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 400px 1fr; align-items: start; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
 
-  .keyline {
-    display: flex; gap: 10px; align-items: baseline;
-    padding: 10px 14px; margin-bottom: 26px;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px;
-  }
-  .keyline span { color: var(--dim); }
-  .keyline b { color: var(--accent); font-weight: 600; }
+  h1 { font-size: 19px; font-weight: 600; margin: 0 0 3px; }
+  .sub { color: var(--dim); font-size: 13.5px; margin: 0 0 20px; }
+  .full { grid-column: 1 / -1; }
 
-  .test { border-top: 1px solid var(--line); padding: 18px 0; }
-  .test:last-of-type { border-bottom: 1px solid var(--line); }
-  .test h2 { font-size: 15px; font-weight: 600; margin: 0 0 6px; }
-  .test p { margin: 0 0 12px; color: var(--dim); font-size: 14px; }
-  .test code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12.5px; color: var(--ink); background: #222a34;
-    padding: 1px 5px; border-radius: 3px;
-  }
-  .expect { color: var(--warn); }
+  /* ---------- loja ---------- */
+  .loja { background: #fff; color: #17202b; border-radius: 10px; overflow: hidden; position: relative; min-height: 560px; }
+  .loja-head { background: #fff; border-bottom: 1px solid #e6e9ed; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
+  .logo { color: var(--verde); font-weight: 700; letter-spacing: -.5px; font-size: 17px; }
+  .rota { font-family: var(--mono); font-size: 11px; color: #8a94a1; }
+  .nav { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid #eef1f4; background: #fafbfc; }
+  .nav button { font: inherit; font-size: 12.5px; padding: 5px 10px; border: 1px solid #d8dde3; background: #fff; color: #3a4552; border-radius: 20px; cursor: pointer; }
+  .nav button:hover { border-color: var(--verde); color: var(--verde); }
+  .nav button[aria-current="page"] { background: var(--verde); border-color: var(--verde); color: #fff; }
+  .conteudo { padding: 16px 14px 90px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card { border: 1px solid #e6e9ed; border-radius: 8px; padding: 10px; cursor: pointer; }
+  .card:hover { border-color: var(--verde); }
+  .card .nome { font-size: 12.5px; line-height: 1.35; min-height: 52px; }
+  .card .preco { color: var(--verde); font-weight: 700; font-size: 15px; margin-top: 6px; }
+  .card .sku { font-family: var(--mono); font-size: 10px; color: #99a3ae; margin-top: 3px; }
+  .pdp h2 { font-size: 17px; margin: 0 0 4px; line-height: 1.3; }
+  .pdp .sku { font-family: var(--mono); font-size: 11px; color: #99a3ae; }
+  .pdp .preco { color: var(--verde); font-weight: 700; font-size: 26px; margin: 12px 0 2px; }
+  .pdp .de { color: #99a3ae; font-size: 13px; text-decoration: line-through; }
+  .mock { margin-top: 18px; padding: 8px 10px; background: #f4f6f8; border-radius: 6px; font-size: 11.5px; color: #77838f; }
 
-  button {
-    font: inherit; font-size: 14px;
-    padding: 8px 16px; border-radius: 5px; cursor: pointer;
-    background: transparent; color: var(--ink);
-    border: 1px solid var(--line);
+  /* pop-up do agente */
+  #popup {
+    position: absolute; right: 14px; bottom: 78px; width: 210px;
+    background: #fff; border: 1px solid #dde2e8; border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,.14); padding: 12px; display: none;
   }
-  button:hover { border-color: var(--accent); color: var(--accent); }
-  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  button.primary { background: var(--accent); border-color: var(--accent); color: #05131f; font-weight: 600; }
-  button.primary:hover { color: #05131f; filter: brightness(1.1); }
+  #popup.on { display: block; }
+  #popup p { margin: 0 0 10px; font-size: 13px; line-height: 1.4; }
+  #popup button { width: 100%; font: inherit; font-size: 13px; font-weight: 600; padding: 8px; border-radius: 20px; border: 1px solid var(--verde); background: #fff; color: var(--verde); cursor: pointer; }
+  #popup button:hover { background: var(--verde); color: #fff; }
 
-  #log {
-    margin-top: 28px; padding: 14px;
-    background: #0d1116; border: 1px solid var(--line); border-radius: 6px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12.5px; line-height: 1.7;
-    max-height: 260px; overflow-y: auto;
+  /* ---------- painel ---------- */
+  .painel { display: grid; gap: 14px; }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+  .box h3 { font-size: 13px; font-weight: 600; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
+  .kv { display: grid; grid-template-columns: 148px 1fr; gap: 4px 10px; font-family: var(--mono); font-size: 12px; }
+  .kv dt { color: var(--dim); }
+  .kv dd { margin: 0; word-break: break-all; }
+  .sim { color: var(--ok); } .nao { color: var(--err); } .neutro { color: var(--warn); }
+
+  .acoes { display: flex; flex-wrap: wrap; gap: 6px; }
+  .acoes button, .backend button {
+    font: inherit; font-size: 12.5px; padding: 6px 11px; border-radius: 5px; cursor: pointer;
+    background: transparent; color: var(--ink); border: 1px solid var(--line);
   }
+  .acoes button:hover, .backend button:hover { border-color: var(--verde); color: var(--ok); }
+
+  .backend { display: flex; gap: 6px; }
+  .backend input {
+    flex: 1; font: inherit; font-family: var(--mono); font-size: 12px; padding: 6px 9px;
+    background: #0d1116; border: 1px solid var(--line); border-radius: 5px; color: var(--ink);
+  }
+  .backend input:focus { outline: none; border-color: var(--verde); }
+  .hint { color: var(--dim); font-size: 12px; margin: 8px 0 0; }
+
+  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11.5px; }
+  th { text-align: left; color: var(--dim); font-weight: 500; padding: 4px 8px 6px 0; border-bottom: 1px solid var(--line); }
+  td { padding: 5px 8px 5px 0; border-bottom: 1px solid #222933; vertical-align: top; }
+  tr.novo td { color: var(--ok); }
+  .vazio { color: var(--dim); font-size: 12px; font-style: italic; }
+
+  .corrida { display: grid; gap: 8px; }
+  .resultado { font-family: var(--mono); font-size: 12px; padding: 9px 11px; border-radius: 5px; background: #0d1116; border: 1px solid var(--line); }
+  .resultado .rot { color: var(--dim); }
+  .resultado.certo { border-color: #2f5e46; }
+  .resultado.errado { border-color: #5e3630; }
+
+  #log { font-family: var(--mono); font-size: 11.5px; line-height: 1.75; max-height: 190px; overflow-y: auto; background: #0d1116; border: 1px solid var(--line); border-radius: 5px; padding: 10px; }
   #log div { color: var(--dim); }
-  #log div b { color: var(--ok); font-weight: 500; }
+  #log b { color: var(--ok); font-weight: 500; }
+  #log i { color: var(--warn); font-style: normal; }
+  #log s { color: var(--err); text-decoration: none; }
 </style>
 </head>
 <body>
-<main>
 
-  <h1>Teste de metadados — Blip Chat Widget</h1>
-  <p class="sub">Bot testewebchat5. Rode um teste por vez e confira o <code>input.message.metadata</code> no trace do Builder antes de passar pro próximo.</p>
+<div class="wrap">
 
-  <div class="keyline">
-    <span>ctxKey enviada no build:</span> <b id="ctxkey">—</b>
+  <div class="full">
+    <h1>Simulação ponta a ponta — Agente de fechaduras no webchat</h1>
+    <p class="sub">Router de e-commerce de <b>homologação</b>. Navegação client-side, widget montado uma vez (igual ao header da loja). Backend de contexto mockado em memória, seguindo o contrato da spec.</p>
   </div>
 
-  <section class="test">
-    <h2>1. Mensagem digitada pelo cliente</h2>
-    <p>Abra o chat e digite qualquer coisa à mão. Verifica se o <code>withCustomMessageMetadata</code> realmente chega ao bot nas mensagens do usuário — a peça central do desenho.</p>
-    <p class="expect">Esperado: metadata contém ctxKey e origem.</p>
-    <button class="primary" id="abrir">Abrir o chat</button>
-  </section>
+  <!-- ============ LOJA ============ -->
+  <div class="loja" id="loja">
+    <div class="loja-head">
+      <span class="logo">intelbras</span>
+      <span class="rota" id="rota">/</span>
+    </div>
+    <div class="nav" id="nav"></div>
+    <div class="conteudo" id="conteudo"></div>
 
-  <section class="test">
-    <h2>2. sendMessage sem metadata</h2>
-    <p>Mensagem programática, sem metadata próprio. Verifica se o metadado global vale também pras mensagens disparadas por código.</p>
-    <p class="expect">Esperado: metadata contém ctxKey e origem.</p>
-    <button id="t2">Enviar "ping-sem-metadata"</button>
-  </section>
+    <div id="popup">
+      <p>Olá! 👋 Precisa de ajuda para escolher sua fechadura?</p>
+      <button id="btn-popup">Preciso de ajuda</button>
+    </div>
+  </div>
 
-  <section class="test">
-    <h2>3. sendMessage com metadata</h2>
-    <p>Envia <code>#blip.hiddenMessage</code> e nada mais. Se a ctxKey aparecer junto, o widget mescla; se sumir, sobrescreve — e aí a ctxKey precisa ser repetida em toda hidden message.</p>
-    <p class="expect">Decisivo: ctxKey presente = mescla. Ausente = sobrescreve.</p>
-    <button id="t3">Enviar "ping-com-metadata" (oculta)</button>
-  </section>
+  <!-- ============ PAINEL ============ -->
+  <div class="painel">
 
-  <section class="test">
-    <h2>4. Simulação do CTA</h2>
-    <p>Reproduz a jornada real: marca a flag, abre o chat e, no <code>LOAD_EVENT</code>, dispara <code>#recomendação</code> oculta com a ctxKey repetida.</p>
-    <p class="expect">Esperado: o roteador redireciona sem a palavra aparecer na tela.</p>
-    <button id="t4">Simular clique no pop-up</button>
-  </section>
+    <div class="box">
+      <h3>Estado do widget</h3>
+      <dl class="kv">
+        <dt>ctxKey</dt><dd id="v-ctxkey">—</dd>
+        <dt>loaded</dt><dd id="v-loaded">—</dd>
+        <dt>última atividade</dt><dd id="v-atividade">—</dd>
+        <dt>conversaOciosa()</dt><dd id="v-ociosa">—</dd>
+        <dt>pop-up visível</dt><dd id="v-popup">—</dd>
+      </dl>
+    </div>
 
-  <div id="log"><div>Carregando o widget…</div></div>
+    <div class="box">
+      <h3>Controles de teste</h3>
+      <div class="acoes">
+        <button id="a-ociosa">Forçar ociosidade</button>
+        <button id="a-ativa">Marcar atividade agora</button>
+        <button id="a-limpa-ctx">Limpar contexto</button>
+        <button id="a-nova-key">Nova ctxKey</button>
+      </div>
+      <p class="hint">"Forçar ociosidade" simula os 60 min de inatividade sem esperar.</p>
+    </div>
 
-</main>
+    <div class="box">
+      <h3>Backend de contexto</h3>
+      <div class="backend">
+        <input id="url-backend" placeholder="vazio = mock em memória" autocomplete="off">
+        <button id="a-backend">Usar</button>
+      </div>
+      <p class="hint">Preencha quando o backend real existir. O mock implementa o mesmo contrato.</p>
+    </div>
+
+    <div class="box">
+      <h3>Registros gravados (POST /contexto)</h3>
+      <div id="tabela"></div>
+    </div>
+
+    <div class="box">
+      <h3>Teste de corrida</h3>
+      <div class="corrida">
+        <div class="acoes">
+          <button id="a-marcar-at">1. Marcar instante da pergunta</button>
+          <button id="a-rodar-get">2. Rodar GET</button>
+        </div>
+        <p class="hint">Marque o instante, navegue para outro produto e rode o GET. Compara a busca por <code>at</code> com a busca pelo mais recente.</p>
+        <div class="resultado" id="r-at"><span class="rot">com at →</span> —</div>
+        <div class="resultado" id="r-ultimo"><span class="rot">mais recente →</span> —</div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>Log de eventos</h3>
+      <div id="log"></div>
+    </div>
+
+  </div>
+</div>
 
 <script src="https://unpkg.com/blip-chat-widget" type="text/javascript"></script>
 <script>
 (function () {
-  var APP_KEY = 'dGVzdGV3ZWJjaGF0NTo1MzFmOWE3NS0xYTg5LTRmYWYtODYwNy0wZjZiZWIwZTgwY2E=';
-  var COMMON_URL = 'https://intelbras.chat.blip.ai/';
+  'use strict';
 
+  var APP_KEY    = 'ZWNvbW1lcmNlaW50ZWxicmFzaG9tb2xvZzowMDNlYzg0ZC0yYmJiLTQxZTctODE1OS02ZDg3MWI4ZTQzOGU=';
+  var COMMON_URL = 'https://intelbras.chat.blip.ai/';
+  var ICON       = 'https://blipmediastore.blob.core.windows.net/public-medias/Media_2d943d15-98a5-4ebd-924b-b32641c20812';
+
+  var K_CTX       = 'intelbras.ctxKey';
+  var K_ATIVIDADE = 'intelbras.ultimaAtividadeChat';
+  var JANELA_SEGURA = 60 * 60 * 1000;
+  var CTX_TTL       = 30 * 60 * 1000;
+  var MAX_REGISTROS = 10;
+  var TOLERANCIA    = 2000;
+
+  // ---------- catálogo (mock; no real, resolvido server-side na API VTEX) ----------
+  var CATALOGO = {
+    '4670040': { nome: 'Fechadura Inteligente de Embutir com Biometria MFV 3000', preco: '799.90',  precoDe: '1285.34', fechadura: true },
+    '4670102': { nome: 'Fechadura Digital de Sobrepor FR 102',                    preco: '206.91',  precoDe: '401.60',  fechadura: true },
+    '4670220': { nome: 'Fechadura Digital de Sobrepor FR 220',                    preco: '449.90',  precoDe: '699.00',  fechadura: true },
+    '4550120': { nome: 'Câmera Full HD VHD 1220 B',                               preco: '259.90',  precoDe: '349.90',  fechadura: false }
+  };
+
+  var ROTAS = [
+    { id: 'home',      label: 'Home',        tipo: 'fora-categoria' },
+    { id: 'plp',       label: 'Fechaduras',  tipo: 'plp' },
+    { id: '4670040',   label: 'MFV 3000',    tipo: 'pdp' },
+    { id: '4670102',   label: 'FR 102',      tipo: 'pdp' },
+    { id: '4670220',   label: 'FR 220',      tipo: 'pdp' },
+    { id: '4550120',   label: 'Câmera',      tipo: 'pdp' }
+  ];
+
+  // ---------- log ----------
   var logEl = document.getElementById('log');
-  function log(msg) {
-    var t = new Date().toISOString().substr(11, 12);
+  function log(msg, tipo) {
+    var tag = tipo === 'warn' ? 'i' : tipo === 'err' ? 's' : 'b';
     var d = document.createElement('div');
-    d.innerHTML = t + '  <b>' + msg + '</b>';
-    logEl.appendChild(d);
-    logEl.scrollTop = logEl.scrollHeight;
+    d.innerHTML = new Date().toISOString().substr(11, 12) + '  <' + tag + '>' + msg + '</' + tag + '>';
+    logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
   }
 
-  // Mesma lógica que a loja usaria: chave própria, persistida, independente do Blip.
+  // ---------- ctxKey ----------
   function getCtxKey() {
-    var k = localStorage.getItem('intelbras.ctxKey');
+    var k = localStorage.getItem(K_CTX);
     if (!k) {
       k = (crypto.randomUUID ? crypto.randomUUID()
                              : String(Date.now()) + Math.random().toString(16).slice(2));
-      localStorage.setItem('intelbras.ctxKey', k);
+      localStorage.setItem(K_CTX, k);
     }
     return k;
   }
 
-  var ctxKey = getCtxKey();
-  document.getElementById('ctxkey').textContent = ctxKey;
-
-  var client = new BlipChat();
-  var cameFromCTA = false;
-  var loaded = false;
-
-  client
-    .withAppKey(APP_KEY)
-    .withButton({ color: '#0096fa', icon: '' })
-    .withCustomCommonUrl(COMMON_URL)
-    .withCustomMessageMetadata({
-      ctxKey: ctxKey,
-      origem: 'webchat-loja'
-    })
-    .withEventHandler(BlipChat.LOAD_EVENT, function () {
-      loaded = true;
-      log('LOAD_EVENT');
-      if (!cameFromCTA) return;
-      cameFromCTA = false;
-      client.sendMessage({
-        type: 'text/plain',
-        content: '#recomendação',
-        metadata: {
-          '#blip.hiddenMessage': true,
-          ctxKey: ctxKey
-        }
-      });
-      log('CTA: #recomendação enviada (oculta)');
-    })
-    .withEventHandler(BlipChat.ENTER_EVENT, function () { log('ENTER_EVENT'); })
-    .withEventHandler(BlipChat.LEAVE_EVENT, function () { log('LEAVE_EVENT'); })
-    .withEventHandler(BlipChat.CREATE_ACCOUNT_EVENT, function () { log('CREATE_ACCOUNT_EVENT'); })
-    .build();
-
-  log('widget construído');
-
-  function requireLoaded() {
-    if (!loaded) { log('chat ainda não carregou — abra antes'); return false; }
-    return true;
+  // ---------- atividade ----------
+  function marcarAtividade() { localStorage.setItem(K_ATIVIDADE, String(Date.now())); pintar(); }
+  function conversaOciosa() {
+    var t = localStorage.getItem(K_ATIVIDADE);
+    if (!t) return true;
+    return (Date.now() - Number(t)) > JANELA_SEGURA;
   }
 
-  document.getElementById('abrir').onclick = function () {
-    client.toogleChat();
-  };
+  // =====================================================================
+  //  BACKEND MOCK  — mesmo contrato da spec (seção 5)
+  // =====================================================================
+  var urlBackend = '';
+  var store = {};          // ctxKey -> [registros]
+  var ultimoSkuEnviado = null;
 
-  document.getElementById('t2').onclick = function () {
-    if (!requireLoaded()) return;
-    client.sendMessage({ type: 'text/plain', content: 'ping-sem-metadata' });
-    log('teste 2 enviado');
-  };
+  function resolverCatalogo(skuId) {
+    var p = CATALOGO[skuId];
+    if (!p) return {};
+    return { skuId: skuId, nome: p.nome, preco: p.preco, precoDe: p.precoDe, disponivel: true };
+  }
 
-  document.getElementById('t3').onclick = function () {
-    if (!requireLoaded()) return;
+  function mockPost(body) {
+    var lista = store[body.ctxKey] || (store[body.ctxKey] = []);
+    var reg = Object.assign(
+      { tipoPagina: body.tipoPagina, capturadoEm: String(Date.now()) },   // carimbo do "servidor"
+      body.skuId ? resolverCatalogo(body.skuId) : {}
+    );
+    lista.push(reg);
+    if (lista.length > MAX_REGISTROS) lista.shift();
+    return reg;
+  }
+
+  function mockGet(ctxKey, at) {
+    var agora = Date.now();
+    var lista = (store[ctxKey] || []).filter(function (r) { return agora - Number(r.capturadoEm) < CTX_TTL; });
+    if (!lista.length) return null;
+    if (at == null) return lista[lista.length - 1];
+    for (var i = lista.length - 1; i >= 0; i--) {
+      if (Number(lista[i].capturadoEm) <= at + TOLERANCIA) return lista[i];
+    }
+    return null;
+  }
+
+  function postContexto(skuId, tipoPagina) {
+    var body = { ctxKey: getCtxKey(), skuId: skuId || null, tipoPagina: tipoPagina };
+
+    if (skuId && skuId === ultimoSkuEnviado) { log('POST deduplicado (mesmo SKU)', 'warn'); return; }
+    if (!skuId && ultimoSkuEnviado === null)  { return; }
+    ultimoSkuEnviado = skuId || null;
+
+    if (urlBackend) {
+      fetch(urlBackend.replace(/\/$/, '') + '/contexto', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+      }).then(function () { log('POST /contexto → backend real'); })
+        .catch(function (e) { log('POST falhou: ' + e.message, 'err'); });
+    } else {
+      var reg = mockPost(body);
+      log('POST /contexto → ' + (reg.nome || reg.tipoPagina));
+    }
+    pintarTabela();
+  }
+
+  function getContexto(at, cb) {
+    if (urlBackend) {
+      var u = urlBackend.replace(/\/$/, '') + '/contexto/' + getCtxKey() + (at ? '?at=' + at : '');
+      fetch(u).then(function (r) { return r.ok ? r.json() : null; }).then(cb)
+              .catch(function (e) { log('GET falhou: ' + e.message, 'err'); cb(null); });
+    } else {
+      cb(mockGet(getCtxKey(), at));
+    }
+  }
+
+  // =====================================================================
+  //  WIDGET
+  // =====================================================================
+  var client   = null;
+  var loaded   = false;
+  var cameFromCTA = false;
+
+  function enviarMensagemAgente() {
     client.sendMessage({
       type: 'text/plain',
-      content: 'ping-com-metadata',
-      metadata: { '#blip.hiddenMessage': true }
+      content: 'Quero uma recomendação de fechadura',
+      metadata: { intent: 'recomendacao-fechaduras', ctxKey: getCtxKey() }
     });
-    log('teste 3 enviado');
-  };
+    log('mensagem injetada (intent: recomendacao-fechaduras)');
+  }
 
-  document.getElementById('t4').onclick = function () {
-    cameFromCTA = true;
-    if (loaded) {
-      client.sendMessage({
-        type: 'text/plain',
-        content: '#recomendação',
-        metadata: { '#blip.hiddenMessage': true, ctxKey: ctxKey }
-      });
-      cameFromCTA = false;
-      log('CTA: #recomendação enviada (chat já carregado)');
+  function dispararAgente() {
+    if (conversaOciosa()) {
+      if (loaded) { enviarMensagemAgente(); }
+      else { cameFromCTA = true; log('flag cameFromCTA levantada — aguardando LOAD_EVENT', 'warn'); }
+    } else {
+      log('conversa recente — abre sem injetar', 'warn');
     }
     client.toogleChat();
+  }
+
+  function montarWidget() {
+    client = new BlipChat();
+    client
+      .withAppKey(APP_KEY)
+      .withButton({ color: '#00a75d', icon: ICON })
+      .withCustomCommonUrl(COMMON_URL)
+      .withCustomMessageMetadata({ ctxKey: getCtxKey(), origem: 'webchat-loja' })
+      .withEventHandler(BlipChat.LOAD_EVENT, function () {
+        loaded = true; marcarAtividade(); log('LOAD_EVENT');
+        if (!cameFromCTA) return;
+        cameFromCTA = false;
+        enviarMensagemAgente();
+      })
+      .withEventHandler(BlipChat.ENTER_EVENT, function () { marcarAtividade(); log('ENTER_EVENT'); pintar(); })
+      .withEventHandler(BlipChat.LEAVE_EVENT, function () { marcarAtividade(); log('LEAVE_EVENT'); pintar(); })
+      .withEventHandler(BlipChat.CREATE_ACCOUNT_EVENT, function () { log('CREATE_ACCOUNT_EVENT'); })
+      .build();
+    log('widget construído (uma vez, como no header da loja)');
+  }
+
+  // =====================================================================
+  //  "SPA" DA LOJA
+  // =====================================================================
+  var rotaAtual = 'home';
+
+  function ehFechadura(rota) {
+    if (rota === 'plp') return true;
+    var p = CATALOGO[rota];
+    return !!(p && p.fechadura);
+  }
+
+  function navegar(id) {
+    rotaAtual = id;
+    render();
+    var r = ROTAS.filter(function (x) { return x.id === id; })[0];
+
+    if (ehFechadura(id)) {
+      postContexto(r.tipo === 'pdp' ? id : null, r.tipo);
+    } else {
+      postContexto(null, 'fora-categoria');
+    }
+    pintar();
+  }
+
+  function render() {
+    document.getElementById('rota').textContent =
+      rotaAtual === 'home' ? '/' :
+      rotaAtual === 'plp'  ? '/controle-de-acesso/fechaduras-digitais' : '/p/' + rotaAtual;
+
+    var nav = document.getElementById('nav');
+    nav.innerHTML = '';
+    ROTAS.forEach(function (r) {
+      var b = document.createElement('button');
+      b.textContent = r.label;
+      if (r.id === rotaAtual) b.setAttribute('aria-current', 'page');
+      b.onclick = function () { navegar(r.id); };
+      nav.appendChild(b);
+    });
+
+    var c = document.getElementById('conteudo');
+    if (rotaAtual === 'home') {
+      c.innerHTML = '<p style="font-size:13.5px;color:#63707d">Página fora da categoria de fechaduras. O pop-up não aparece aqui e o contexto é marcado como <code>fora-categoria</code>.</p>';
+    } else if (rotaAtual === 'plp') {
+      var html = '<div class="grid">';
+      ['4670040', '4670102', '4670220'].forEach(function (sku) {
+        var p = CATALOGO[sku];
+        html += '<div class="card" data-sku="' + sku + '"><div class="nome">' + p.nome + '</div>' +
+                '<div class="preco">R$ ' + p.preco.replace('.', ',') + '</div>' +
+                '<div class="sku">SKU ' + sku + '</div></div>';
+      });
+      c.innerHTML = html + '</div>';
+      Array.prototype.forEach.call(c.querySelectorAll('.card'), function (el) {
+        el.onclick = function () { navegar(el.dataset.sku); };
+      });
+    } else {
+      var p2 = CATALOGO[rotaAtual];
+      c.innerHTML = '<div class="pdp"><h2>' + p2.nome + '</h2>' +
+        '<div class="sku">Código do Produto: ' + rotaAtual + '</div>' +
+        '<div class="de">De: R$ ' + p2.precoDe.replace('.', ',') + '</div>' +
+        '<div class="preco">R$ ' + p2.preco.replace('.', ',') + '</div>' +
+        (p2.fechadura ? '' : '<div class="mock">Produto fora da categoria — o pop-up não aparece.</div>') +
+        '<div class="mock">Dados mockados. No real, resolvidos server-side na API de catálogo da VTEX a partir do SKU.</div></div>';
+    }
+  }
+
+  function popupDeveAparecer() { return ehFechadura(rotaAtual) && conversaOciosa(); }
+
+  function pintar() {
+    document.getElementById('v-ctxkey').textContent = getCtxKey();
+    document.getElementById('v-loaded').innerHTML   = loaded ? '<span class="sim">true</span>' : '<span class="neutro">false</span>';
+
+    var t = localStorage.getItem(K_ATIVIDADE);
+    document.getElementById('v-atividade').textContent = t
+      ? Math.round((Date.now() - Number(t)) / 1000) + 's atrás' : 'nunca';
+
+    var oc = conversaOciosa();
+    document.getElementById('v-ociosa').innerHTML = oc
+      ? '<span class="sim">true → injeta</span>' : '<span class="nao">false → não injeta</span>';
+
+    var pv = popupDeveAparecer();
+    document.getElementById('v-popup').innerHTML = pv
+      ? '<span class="sim">sim</span>' : '<span class="neutro">não</span>';
+    document.getElementById('popup').classList.toggle('on', pv);
+  }
+
+  function pintarTabela() {
+    var lista = store[getCtxKey()] || [];
+    var el = document.getElementById('tabela');
+    if (!lista.length) { el.innerHTML = '<p class="vazio">Nenhum registro ainda.</p>'; return; }
+    var h = '<table><tr><th>capturadoEm</th><th>tipoPagina</th><th>produto</th></tr>';
+    lista.slice().reverse().forEach(function (r, i) {
+      h += '<tr' + (i === 0 ? ' class="novo"' : '') + '><td>' + r.capturadoEm + '</td><td>' +
+           r.tipoPagina + '</td><td>' + (r.nome || '—') + '</td></tr>';
+    });
+    el.innerHTML = h + '</table>';
+  }
+
+  // =====================================================================
+  //  CONTROLES
+  // =====================================================================
+  document.getElementById('btn-popup').onclick = dispararAgente;
+
+  document.getElementById('a-ociosa').onclick = function () {
+    localStorage.setItem(K_ATIVIDADE, String(Date.now() - JANELA_SEGURA - 60000));
+    log('ociosidade forçada', 'warn'); pintar();
+  };
+  document.getElementById('a-ativa').onclick = function () { marcarAtividade(); log('atividade marcada', 'warn'); };
+  document.getElementById('a-limpa-ctx').onclick = function () {
+    store = {}; ultimoSkuEnviado = null; pintarTabela(); log('contexto limpo', 'warn');
+  };
+  document.getElementById('a-nova-key').onclick = function () {
+    localStorage.removeItem(K_CTX); store = {}; ultimoSkuEnviado = null;
+    log('nova ctxKey: ' + getCtxKey() + ' — recarregue para o widget adotá-la', 'warn');
+    pintar(); pintarTabela();
+  };
+  document.getElementById('a-backend').onclick = function () {
+    urlBackend = document.getElementById('url-backend').value.trim();
+    log(urlBackend ? 'backend real: ' + urlBackend : 'voltou para o mock', 'warn');
+  };
+
+  var atMarcado = null;
+  document.getElementById('a-marcar-at').onclick = function () {
+    atMarcado = Date.now();
+    log('at marcado: ' + atMarcado + ' (produto atual = resposta correta)', 'warn');
+  };
+  document.getElementById('a-rodar-get').onclick = function () {
+    if (!atMarcado) { log('marque o instante primeiro', 'err'); return; }
+    getContexto(atMarcado, function (comAt) {
+      document.getElementById('r-at').className = 'resultado certo';
+      document.getElementById('r-at').innerHTML =
+        '<span class="rot">com at →</span> ' + (comAt ? (comAt.nome || comAt.tipoPagina) : '404');
+    });
+    getContexto(null, function (ultimo) {
+      document.getElementById('r-ultimo').className = 'resultado errado';
+      document.getElementById('r-ultimo').innerHTML =
+        '<span class="rot">mais recente →</span> ' + (ultimo ? (ultimo.nome || ultimo.tipoPagina) : '404');
+    });
+  };
+
+  // ---------- boot ----------
+  window.onload = function () {
+    montarWidget();
+    render();
+    pintar();
+    pintarTabela();
+    setInterval(pintar, 1000);
+    log('simulação pronta');
   };
 })();
 </script>
