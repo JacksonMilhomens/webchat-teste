@@ -7,187 +7,189 @@
 <style>
   :root {
     --verde: #00a75d;
-    --verde-esc: #008a4d;
-    --bg: #0f1319;
-    --panel: #171d26;
-    --line: #2a323d;
-    --ink: #dfe5ec;
-    --dim: #8793a3;
-    --ok: #4ec98a;
-    --warn: #e0a640;
-    --err: #e06a5c;
+    --bg: #0f1319; --panel: #171d26; --line: #2a323d;
+    --ink: #dfe5ec; --dim: #8793a3;
+    --ok: #4ec98a; --warn: #e0a640; --err: #e06a5c;
     --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; padding: 20px;
-    background: var(--bg); color: var(--ink);
-    font: 15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  }
-  .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; grid-template-columns: 400px 1fr; align-items: start; }
-  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; } }
+  body { margin:0; padding:20px; background:var(--bg); color:var(--ink);
+         font:15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width:1200px; margin:0 auto; display:grid; gap:18px; grid-template-columns:390px 1fr; align-items:start; }
+  @media (max-width:900px) { .wrap { grid-template-columns:1fr; } }
+  h1 { font-size:19px; font-weight:600; margin:0 0 3px; }
+  .sub { color:var(--dim); font-size:13.5px; margin:0 0 16px; }
+  .full { grid-column:1/-1; }
 
-  h1 { font-size: 19px; font-weight: 600; margin: 0 0 3px; }
-  .sub { color: var(--dim); font-size: 13.5px; margin: 0 0 20px; }
-  .full { grid-column: 1 / -1; }
+  /* loja */
+  .loja { background:#fff; color:#17202b; border-radius:10px; overflow:hidden; position:relative; min-height:540px; }
+  .loja-head { border-bottom:1px solid #e6e9ed; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { color:var(--verde); font-weight:700; letter-spacing:-.5px; font-size:17px; }
+  .rota { font-family:var(--mono); font-size:11px; color:#8a94a1; }
+  .nav { display:flex; gap:6px; flex-wrap:wrap; padding:10px 14px; border-bottom:1px solid #eef1f4; background:#fafbfc; }
+  .nav button { font:inherit; font-size:12.5px; padding:5px 10px; border:1px solid #d8dde3; background:#fff; color:#3a4552; border-radius:20px; cursor:pointer; }
+  .nav button:hover { border-color:var(--verde); color:var(--verde); }
+  .nav button[aria-current="page"] { background:var(--verde); border-color:var(--verde); color:#fff; }
+  .conteudo { padding:16px 14px 90px; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .card { border:1px solid #e6e9ed; border-radius:8px; padding:10px; cursor:pointer; }
+  .card:hover { border-color:var(--verde); }
+  .card .nome { font-size:12.5px; line-height:1.35; min-height:52px; }
+  .card .preco { color:var(--verde); font-weight:700; font-size:15px; margin-top:6px; }
+  .card .sku { font-family:var(--mono); font-size:10px; color:#99a3ae; margin-top:3px; }
+  .pdp h2 { font-size:17px; margin:0 0 4px; line-height:1.3; }
+  .pdp .sku { font-family:var(--mono); font-size:11px; color:#99a3ae; }
+  .pdp .preco { color:var(--verde); font-weight:700; font-size:26px; margin:12px 0 2px; }
+  .pdp .de { color:#99a3ae; font-size:13px; text-decoration:line-through; }
+  .mock { margin-top:16px; padding:8px 10px; background:#f4f6f8; border-radius:6px; font-size:11.5px; color:#77838f; }
+  #popup { position:absolute; right:14px; bottom:78px; width:210px; background:#fff;
+           border:1px solid #dde2e8; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,.14); padding:12px; display:none; }
+  #popup.on { display:block; }
+  #popup p { margin:0 0 10px; font-size:13px; line-height:1.4; }
+  #popup button { width:100%; font:inherit; font-size:13px; font-weight:600; padding:8px; border-radius:20px;
+                  border:1px solid var(--verde); background:#fff; color:var(--verde); cursor:pointer; }
+  #popup button:hover { background:var(--verde); color:#fff; }
 
-  /* ---------- loja ---------- */
-  .loja { background: #fff; color: #17202b; border-radius: 10px; overflow: hidden; position: relative; min-height: 560px; }
-  .loja-head { background: #fff; border-bottom: 1px solid #e6e9ed; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
-  .logo { color: var(--verde); font-weight: 700; letter-spacing: -.5px; font-size: 17px; }
-  .rota { font-family: var(--mono); font-size: 11px; color: #8a94a1; }
-  .nav { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid #eef1f4; background: #fafbfc; }
-  .nav button { font: inherit; font-size: 12.5px; padding: 5px 10px; border: 1px solid #d8dde3; background: #fff; color: #3a4552; border-radius: 20px; cursor: pointer; }
-  .nav button:hover { border-color: var(--verde); color: var(--verde); }
-  .nav button[aria-current="page"] { background: var(--verde); border-color: var(--verde); color: #fff; }
-  .conteudo { padding: 16px 14px 90px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .card { border: 1px solid #e6e9ed; border-radius: 8px; padding: 10px; cursor: pointer; }
-  .card:hover { border-color: var(--verde); }
-  .card .nome { font-size: 12.5px; line-height: 1.35; min-height: 52px; }
-  .card .preco { color: var(--verde); font-weight: 700; font-size: 15px; margin-top: 6px; }
-  .card .sku { font-family: var(--mono); font-size: 10px; color: #99a3ae; margin-top: 3px; }
-  .pdp h2 { font-size: 17px; margin: 0 0 4px; line-height: 1.3; }
-  .pdp .sku { font-family: var(--mono); font-size: 11px; color: #99a3ae; }
-  .pdp .preco { color: var(--verde); font-weight: 700; font-size: 26px; margin: 12px 0 2px; }
-  .pdp .de { color: #99a3ae; font-size: 13px; text-decoration: line-through; }
-  .mock { margin-top: 18px; padding: 8px 10px; background: #f4f6f8; border-radius: 6px; font-size: 11.5px; color: #77838f; }
+  /* painel */
+  .painel { display:grid; gap:13px; }
+  .box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .box h3 { font-size:12.5px; font-weight:600; margin:0 0 10px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); }
+  .kv { display:grid; grid-template-columns:150px 1fr; gap:4px 10px; font-family:var(--mono); font-size:12px; }
+  .kv dt { color:var(--dim); } .kv dd { margin:0; word-break:break-all; }
+  .sim { color:var(--ok); } .nao { color:var(--err); } .neutro { color:var(--warn); }
 
-  /* pop-up do agente */
-  #popup {
-    position: absolute; right: 14px; bottom: 78px; width: 210px;
-    background: #fff; border: 1px solid #dde2e8; border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,.14); padding: 12px; display: none;
-  }
-  #popup.on { display: block; }
-  #popup p { margin: 0 0 10px; font-size: 13px; line-height: 1.4; }
-  #popup button { width: 100%; font: inherit; font-size: 13px; font-weight: 600; padding: 8px; border-radius: 20px; border: 1px solid var(--verde); background: #fff; color: var(--verde); cursor: pointer; }
-  #popup button:hover { background: var(--verde); color: #fff; }
+  .modos { display:grid; gap:7px; }
+  .modo { display:flex; gap:9px; align-items:flex-start; padding:9px 11px; border:1px solid var(--line);
+          border-radius:6px; cursor:pointer; }
+  .modo:hover { border-color:#3c4756; }
+  .modo.sel { border-color:var(--verde); background:#13241c; }
+  .modo input { margin:3px 0 0; accent-color:var(--verde); }
+  .modo b { display:block; font-size:13px; font-weight:600; margin-bottom:2px; }
+  .modo span { font-size:12px; color:var(--dim); line-height:1.4; }
 
-  /* ---------- painel ---------- */
-  .painel { display: grid; gap: 14px; }
-  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
-  .box h3 { font-size: 13px; font-weight: 600; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); }
-  .kv { display: grid; grid-template-columns: 148px 1fr; gap: 4px 10px; font-family: var(--mono); font-size: 12px; }
-  .kv dt { color: var(--dim); }
-  .kv dd { margin: 0; word-break: break-all; }
-  .sim { color: var(--ok); } .nao { color: var(--err); } .neutro { color: var(--warn); }
+  .acoes { display:flex; flex-wrap:wrap; gap:6px; }
+  button.ctl { font:inherit; font-size:12.5px; padding:6px 11px; border-radius:5px; cursor:pointer;
+               background:transparent; color:var(--ink); border:1px solid var(--line); }
+  button.ctl:hover { border-color:var(--verde); color:var(--ok); }
+  .backend { display:flex; gap:6px; }
+  .backend input { flex:1; font:inherit; font-family:var(--mono); font-size:12px; padding:6px 9px;
+                   background:#0d1116; border:1px solid var(--line); border-radius:5px; color:var(--ink); }
+  .backend input:focus { outline:none; border-color:var(--verde); }
+  .hint { color:var(--dim); font-size:12px; margin:8px 0 0; }
 
-  .acoes { display: flex; flex-wrap: wrap; gap: 6px; }
-  .acoes button, .backend button {
-    font: inherit; font-size: 12.5px; padding: 6px 11px; border-radius: 5px; cursor: pointer;
-    background: transparent; color: var(--ink); border: 1px solid var(--line);
-  }
-  .acoes button:hover, .backend button:hover { border-color: var(--verde); color: var(--ok); }
-
-  .backend { display: flex; gap: 6px; }
-  .backend input {
-    flex: 1; font: inherit; font-family: var(--mono); font-size: 12px; padding: 6px 9px;
-    background: #0d1116; border: 1px solid var(--line); border-radius: 5px; color: var(--ink);
-  }
-  .backend input:focus { outline: none; border-color: var(--verde); }
-  .hint { color: var(--dim); font-size: 12px; margin: 8px 0 0; }
-
-  table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 11.5px; }
-  th { text-align: left; color: var(--dim); font-weight: 500; padding: 4px 8px 6px 0; border-bottom: 1px solid var(--line); }
-  td { padding: 5px 8px 5px 0; border-bottom: 1px solid #222933; vertical-align: top; }
-  tr.novo td { color: var(--ok); }
-  .vazio { color: var(--dim); font-size: 12px; font-style: italic; }
-
-  .corrida { display: grid; gap: 8px; }
-  .resultado { font-family: var(--mono); font-size: 12px; padding: 9px 11px; border-radius: 5px; background: #0d1116; border: 1px solid var(--line); }
-  .resultado .rot { color: var(--dim); }
-  .resultado.certo { border-color: #2f5e46; }
-  .resultado.errado { border-color: #5e3630; }
-
-  #log { font-family: var(--mono); font-size: 11.5px; line-height: 1.75; max-height: 190px; overflow-y: auto; background: #0d1116; border: 1px solid var(--line); border-radius: 5px; padding: 10px; }
-  #log div { color: var(--dim); }
-  #log b { color: var(--ok); font-weight: 500; }
-  #log i { color: var(--warn); font-style: normal; }
-  #log s { color: var(--err); text-decoration: none; }
+  table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11.5px; }
+  th { text-align:left; color:var(--dim); font-weight:500; padding:4px 8px 6px 0; border-bottom:1px solid var(--line); }
+  td { padding:5px 8px 5px 0; border-bottom:1px solid #222933; vertical-align:top; }
+  tr.novo td { color:var(--ok); }
+  .vazio { color:var(--dim); font-size:12px; font-style:italic; }
+  .resultado { font-family:var(--mono); font-size:12px; padding:9px 11px; border-radius:5px;
+               background:#0d1116; border:1px solid var(--line); margin-top:7px; }
+  .resultado .rot { color:var(--dim); }
+  #log { font-family:var(--mono); font-size:11.5px; line-height:1.7; max-height:200px; overflow-y:auto;
+         background:#0d1116; border:1px solid var(--line); border-radius:5px; padding:10px; }
+  #log div { color:var(--dim); } #log b { color:var(--ok); font-weight:500; }
+  #log i { color:var(--warn); font-style:normal; } #log s { color:var(--err); text-decoration:none; }
 </style>
 </head>
 <body>
-
 <div class="wrap">
 
   <div class="full">
     <h1>Simulação ponta a ponta — Agente de fechaduras no webchat</h1>
-    <p class="sub">Router de e-commerce de <b>homologação</b>. Navegação client-side, widget montado uma vez (igual ao header da loja). Backend de contexto mockado em memória, seguindo o contrato da spec.</p>
+    <p class="sub">Router de e-commerce de <b>homologação</b>. Três estratégias de entrega do contexto, alternáveis em runtime.</p>
   </div>
 
-  <!-- ============ LOJA ============ -->
-  <div class="loja" id="loja">
-    <div class="loja-head">
-      <span class="logo">intelbras</span>
-      <span class="rota" id="rota">/</span>
-    </div>
+  <!-- LOJA -->
+  <div class="loja">
+    <div class="loja-head"><span class="logo">intelbras</span><span class="rota" id="rota">/</span></div>
     <div class="nav" id="nav"></div>
     <div class="conteudo" id="conteudo"></div>
-
     <div id="popup">
       <p>Olá! 👋 Precisa de ajuda para escolher sua fechadura?</p>
       <button id="btn-popup">Preciso de ajuda</button>
     </div>
   </div>
 
-  <!-- ============ PAINEL ============ -->
+  <!-- PAINEL -->
   <div class="painel">
 
     <div class="box">
-      <h3>Estado do widget</h3>
+      <h3>Estratégia de contexto</h3>
+      <div class="modos" id="modos">
+        <label class="modo" data-modo="rebuild">
+          <input type="radio" name="modo" value="rebuild">
+          <span><b>A — destroy / build</b>
+          Sem backend. Na troca de rota com o chat fechado, o widget é reconstruído e o contexto vai no <code>withCustomMessageMetadata</code>.</span>
+        </label>
+        <label class="modo" data-modo="pull-rota">
+          <input type="radio" name="modo" value="pull-rota">
+          <span><b>B — pull, POST em toda rota</b>
+          Desenho original. POST a cada mudança de rota de fechadura, independente do chat.</span>
+        </label>
+        <label class="modo sel" data-modo="pull-enter">
+          <input type="radio" name="modo" value="pull-enter" checked>
+          <span><b>C — pull, POST no ENTER_EVENT</b>
+          POST ao abrir o chat, mais POST na troca de rota só se o chat estiver aberto.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>Estado</h3>
       <dl class="kv">
         <dt>ctxKey</dt><dd id="v-ctxkey">—</dd>
         <dt>loaded</dt><dd id="v-loaded">—</dd>
+        <dt>isChatOpen</dt><dd id="v-aberto">—</dd>
         <dt>última atividade</dt><dd id="v-atividade">—</dd>
         <dt>conversaOciosa()</dt><dd id="v-ociosa">—</dd>
         <dt>pop-up visível</dt><dd id="v-popup">—</dd>
+        <dt>metadata global</dt><dd id="v-meta">—</dd>
       </dl>
     </div>
 
     <div class="box">
-      <h3>Controles de teste</h3>
+      <h3>Contadores</h3>
+      <dl class="kv">
+        <dt>POSTs</dt><dd id="c-post">0</dd>
+        <dt>rebuilds</dt><dd id="c-rebuild">0</dd>
+        <dt>último rebuild</dt><dd id="c-tempo">—</dd>
+        <dt>iframes no DOM</dt><dd id="c-iframe">0</dd>
+        <dt>scripts no DOM</dt><dd id="c-script">0</dd>
+      </dl>
+      <p class="hint">Iframes acima de 1 indicam vazamento no <code>destroy()</code>.</p>
+    </div>
+
+    <div class="box">
+      <h3>Controles</h3>
       <div class="acoes">
-        <button id="a-ociosa">Forçar ociosidade</button>
-        <button id="a-ativa">Marcar atividade agora</button>
-        <button id="a-limpa-ctx">Limpar contexto</button>
-        <button id="a-nova-key">Nova ctxKey</button>
+        <button class="ctl" id="a-ociosa">Forçar ociosidade</button>
+        <button class="ctl" id="a-ativa">Marcar atividade</button>
+        <button class="ctl" id="a-limpa">Limpar contexto</button>
+        <button class="ctl" id="a-zera">Zerar contadores</button>
+        <button class="ctl" id="a-rebuild">Forçar rebuild</button>
       </div>
-      <p class="hint">"Forçar ociosidade" simula os 60 min de inatividade sem esperar.</p>
+      <div class="backend" style="margin-top:9px">
+        <input id="url-backend" placeholder="URL do backend real (vazio = mock)" autocomplete="off">
+        <button class="ctl" id="a-backend">Usar</button>
+      </div>
     </div>
 
     <div class="box">
-      <h3>Backend de contexto</h3>
-      <div class="backend">
-        <input id="url-backend" placeholder="vazio = mock em memória" autocomplete="off">
-        <button id="a-backend">Usar</button>
-      </div>
-      <p class="hint">Preencha quando o backend real existir. O mock implementa o mesmo contrato.</p>
-    </div>
-
-    <div class="box">
-      <h3>Registros gravados (POST /contexto)</h3>
+      <h3>Registros (POST /contexto)</h3>
       <div id="tabela"></div>
     </div>
 
     <div class="box">
       <h3>Teste de corrida</h3>
-      <div class="corrida">
-        <div class="acoes">
-          <button id="a-marcar-at">1. Marcar instante da pergunta</button>
-          <button id="a-rodar-get">2. Rodar GET</button>
-        </div>
-        <p class="hint">Marque o instante, navegue para outro produto e rode o GET. Compara a busca por <code>at</code> com a busca pelo mais recente.</p>
-        <div class="resultado" id="r-at"><span class="rot">com at →</span> —</div>
-        <div class="resultado" id="r-ultimo"><span class="rot">mais recente →</span> —</div>
+      <div class="acoes">
+        <button class="ctl" id="a-marcar">1. Marcar instante da pergunta</button>
+        <button class="ctl" id="a-get">2. Rodar GET</button>
       </div>
+      <div class="resultado" id="r-at"><span class="rot">com at →</span> —</div>
+      <div class="resultado" id="r-ult"><span class="rot">mais recente →</span> —</div>
     </div>
 
-    <div class="box">
-      <h3>Log de eventos</h3>
-      <div id="log"></div>
-    </div>
-
+    <div class="box"><h3>Log</h3><div id="log"></div></div>
   </div>
 </div>
 
@@ -200,315 +202,291 @@
   var COMMON_URL = 'https://intelbras.chat.blip.ai/';
   var ICON       = 'https://blipmediastore.blob.core.windows.net/public-medias/Media_2d943d15-98a5-4ebd-924b-b32641c20812';
 
-  var K_CTX       = 'intelbras.ctxKey';
-  var K_ATIVIDADE = 'intelbras.ultimaAtividadeChat';
-  var JANELA_SEGURA = 60 * 60 * 1000;
-  var CTX_TTL       = 30 * 60 * 1000;
-  var MAX_REGISTROS = 10;
-  var TOLERANCIA    = 2000;
+  var K_CTX = 'intelbras.ctxKey', K_ATIV = 'intelbras.ultimaAtividadeChat';
+  var JANELA = 60*60*1000, CTX_TTL = 30*60*1000, MAX_REG = 10, TOL = 2000;
 
-  // ---------- catálogo (mock; no real, resolvido server-side na API VTEX) ----------
   var CATALOGO = {
-    '4670040': { nome: 'Fechadura Inteligente de Embutir com Biometria MFV 3000', preco: '799.90',  precoDe: '1285.34', fechadura: true },
-    '4670102': { nome: 'Fechadura Digital de Sobrepor FR 102',                    preco: '206.91',  precoDe: '401.60',  fechadura: true },
-    '4670220': { nome: 'Fechadura Digital de Sobrepor FR 220',                    preco: '449.90',  precoDe: '699.00',  fechadura: true },
-    '4550120': { nome: 'Câmera Full HD VHD 1220 B',                               preco: '259.90',  precoDe: '349.90',  fechadura: false }
+    '4670040': { nome:'Fechadura Inteligente de Embutir com Biometria MFV 3000', preco:'799.90', precoDe:'1285.34', fechadura:true },
+    '4670102': { nome:'Fechadura Digital de Sobrepor FR 102',                    preco:'206.91', precoDe:'401.60',  fechadura:true },
+    '4670220': { nome:'Fechadura Digital de Sobrepor FR 220',                    preco:'449.90', precoDe:'699.00',  fechadura:true },
+    '4550120': { nome:'Câmera Full HD VHD 1220 B',                               preco:'259.90', precoDe:'349.90',  fechadura:false }
   };
-
   var ROTAS = [
-    { id: 'home',      label: 'Home',        tipo: 'fora-categoria' },
-    { id: 'plp',       label: 'Fechaduras',  tipo: 'plp' },
-    { id: '4670040',   label: 'MFV 3000',    tipo: 'pdp' },
-    { id: '4670102',   label: 'FR 102',      tipo: 'pdp' },
-    { id: '4670220',   label: 'FR 220',      tipo: 'pdp' },
-    { id: '4550120',   label: 'Câmera',      tipo: 'pdp' }
+    { id:'home',    label:'Home',       tipo:'fora-categoria' },
+    { id:'plp',     label:'Fechaduras', tipo:'plp' },
+    { id:'4670040', label:'MFV 3000',   tipo:'pdp' },
+    { id:'4670102', label:'FR 102',     tipo:'pdp' },
+    { id:'4670220', label:'FR 220',     tipo:'pdp' },
+    { id:'4550120', label:'Câmera',     tipo:'pdp' }
   ];
 
-  // ---------- log ----------
   var logEl = document.getElementById('log');
-  function log(msg, tipo) {
-    var tag = tipo === 'warn' ? 'i' : tipo === 'err' ? 's' : 'b';
+  function log(m, t) {
+    var g = t==='warn'?'i':t==='err'?'s':'b';
     var d = document.createElement('div');
-    d.innerHTML = new Date().toISOString().substr(11, 12) + '  <' + tag + '>' + msg + '</' + tag + '>';
+    d.innerHTML = new Date().toISOString().substr(11,12)+'  <'+g+'>'+m+'</'+g+'>';
     logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
   }
 
-  // ---------- ctxKey ----------
   function getCtxKey() {
     var k = localStorage.getItem(K_CTX);
-    if (!k) {
-      k = (crypto.randomUUID ? crypto.randomUUID()
-                             : String(Date.now()) + Math.random().toString(16).slice(2));
-      localStorage.setItem(K_CTX, k);
-    }
+    if (!k) { k = crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random().toString(16).slice(2);
+              localStorage.setItem(K_CTX, k); }
     return k;
   }
-
-  // ---------- atividade ----------
-  function marcarAtividade() { localStorage.setItem(K_ATIVIDADE, String(Date.now())); pintar(); }
+  function marcarAtividade() { localStorage.setItem(K_ATIV, String(Date.now())); }
   function conversaOciosa() {
-    var t = localStorage.getItem(K_ATIVIDADE);
-    if (!t) return true;
-    return (Date.now() - Number(t)) > JANELA_SEGURA;
+    var t = localStorage.getItem(K_ATIV);
+    return !t || (Date.now() - Number(t)) > JANELA;
   }
 
-  // =====================================================================
-  //  BACKEND MOCK  — mesmo contrato da spec (seção 5)
-  // =====================================================================
-  var urlBackend = '';
-  var store = {};          // ctxKey -> [registros]
-  var ultimoSkuEnviado = null;
+  // ---------------- backend mock ----------------
+  var urlBackend = '', store = {}, ultimoSku = undefined;
+  var nPost = 0, nRebuild = 0, tRebuild = '—';
 
-  function resolverCatalogo(skuId) {
-    var p = CATALOGO[skuId];
-    if (!p) return {};
-    return { skuId: skuId, nome: p.nome, preco: p.preco, precoDe: p.precoDe, disponivel: true };
+  function resolver(sku) {
+    var p = CATALOGO[sku];
+    return p ? { skuId:sku, nome:p.nome, preco:p.preco, precoDe:p.precoDe, disponivel:true } : {};
   }
-
-  function mockPost(body) {
-    var lista = store[body.ctxKey] || (store[body.ctxKey] = []);
-    var reg = Object.assign(
-      { tipoPagina: body.tipoPagina, capturadoEm: String(Date.now()) },   // carimbo do "servidor"
-      body.skuId ? resolverCatalogo(body.skuId) : {}
-    );
-    lista.push(reg);
-    if (lista.length > MAX_REGISTROS) lista.shift();
-    return reg;
+  function mockPost(b) {
+    var l = store[b.ctxKey] || (store[b.ctxKey] = []);
+    var r = Object.assign({ tipoPagina:b.tipoPagina, capturadoEm:String(Date.now()) },
+                          b.skuId ? resolver(b.skuId) : {});
+    l.push(r); if (l.length > MAX_REG) l.shift();
+    return r;
   }
-
   function mockGet(ctxKey, at) {
     var agora = Date.now();
-    var lista = (store[ctxKey] || []).filter(function (r) { return agora - Number(r.capturadoEm) < CTX_TTL; });
-    if (!lista.length) return null;
-    if (at == null) return lista[lista.length - 1];
-    for (var i = lista.length - 1; i >= 0; i--) {
-      if (Number(lista[i].capturadoEm) <= at + TOLERANCIA) return lista[i];
-    }
+    var l = (store[ctxKey]||[]).filter(function(r){ return agora - Number(r.capturadoEm) < CTX_TTL; });
+    if (!l.length) return null;
+    if (at == null) return l[l.length-1];
+    for (var i=l.length-1; i>=0; i--) if (Number(l[i].capturadoEm) <= at + TOL) return l[i];
     return null;
   }
 
-  function postContexto(skuId, tipoPagina) {
-    var body = { ctxKey: getCtxKey(), skuId: skuId || null, tipoPagina: tipoPagina };
-
-    if (skuId && skuId === ultimoSkuEnviado) { log('POST deduplicado (mesmo SKU)', 'warn'); return; }
-    if (!skuId && ultimoSkuEnviado === null)  { return; }
-    ultimoSkuEnviado = skuId || null;
-
+  function postContexto(sku, tipo, motivo) {
+    if (modo === 'rebuild') return;                       // modo A não usa backend
+    var chave = (sku||'') + '|' + tipo;
+    if (chave === ultimoSku) { log('POST deduplicado ('+motivo+')','warn'); return; }
+    ultimoSku = chave;
+    nPost++;
+    var body = { ctxKey:getCtxKey(), skuId:sku||null, tipoPagina:tipo };
     if (urlBackend) {
-      fetch(urlBackend.replace(/\/$/, '') + '/contexto', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
-      }).then(function () { log('POST /contexto → backend real'); })
-        .catch(function (e) { log('POST falhou: ' + e.message, 'err'); });
+      fetch(urlBackend.replace(/\/$/,'')+'/contexto', { method:'POST',
+        headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+        .then(function(){ log('POST → backend real ('+motivo+')'); })
+        .catch(function(e){ log('POST falhou: '+e.message,'err'); });
     } else {
-      var reg = mockPost(body);
-      log('POST /contexto → ' + (reg.nome || reg.tipoPagina));
+      var r = mockPost(body);
+      log('POST ('+motivo+') → '+(r.nome||r.tipoPagina));
     }
     pintarTabela();
   }
-
   function getContexto(at, cb) {
     if (urlBackend) {
-      var u = urlBackend.replace(/\/$/, '') + '/contexto/' + getCtxKey() + (at ? '?at=' + at : '');
-      fetch(u).then(function (r) { return r.ok ? r.json() : null; }).then(cb)
-              .catch(function (e) { log('GET falhou: ' + e.message, 'err'); cb(null); });
-    } else {
-      cb(mockGet(getCtxKey(), at));
-    }
+      fetch(urlBackend.replace(/\/$/,'')+'/contexto/'+getCtxKey()+(at?'?at='+at:''))
+        .then(function(r){ return r.ok ? r.json() : null; }).then(cb)
+        .catch(function(e){ log('GET falhou: '+e.message,'err'); cb(null); });
+    } else cb(mockGet(getCtxKey(), at));
   }
 
-  // =====================================================================
-  //  WIDGET
-  // =====================================================================
-  var client   = null;
-  var loaded   = false;
-  var cameFromCTA = false;
+  // ---------------- widget ----------------
+  var client = null, loaded = false, cameFromCTA = false, isChatOpen = false;
+  var metaGlobal = {};
+
+  function contextoDaRota() {
+    var r = ROTAS.filter(function(x){ return x.id===rotaAtual; })[0];
+    var ehF = ehFechadura(rotaAtual);
+    return { sku: (ehF && r.tipo==='pdp') ? rotaAtual : null,
+             tipo: ehF ? r.tipo : 'fora-categoria' };
+  }
+
+  function montarWidget() {
+    var m = { ctxKey:getCtxKey(), origem:'webchat-loja' };
+    if (modo === 'rebuild') {
+      var c = contextoDaRota();
+      m.ctxTipoPagina = c.tipo;
+      if (c.sku) { m.ctxSkuId = c.sku; m.ctxProduto = CATALOGO[c.sku].nome; m.ctxPreco = CATALOGO[c.sku].preco; }
+    }
+    metaGlobal = m;
+
+    client = new BlipChat();
+    client.withAppKey(APP_KEY)
+      .withButton({ color:'#00a75d', icon:ICON })
+      .withCustomCommonUrl(COMMON_URL)
+      .withCustomMessageMetadata(m)
+      .withEventHandler(BlipChat.LOAD_EVENT, function () {
+        loaded = true; marcarAtividade(); log('LOAD_EVENT');
+        if (!cameFromCTA) return;
+        cameFromCTA = false; enviarMensagemAgente();
+      })
+      .withEventHandler(BlipChat.ENTER_EVENT, function () {
+        isChatOpen = true; marcarAtividade(); log('ENTER_EVENT');
+        if (modo === 'pull-enter') { var c = contextoDaRota(); postContexto(c.sku, c.tipo, 'ENTER_EVENT'); }
+        pintar();
+      })
+      .withEventHandler(BlipChat.LEAVE_EVENT, function () {
+        isChatOpen = false; marcarAtividade(); log('LEAVE_EVENT'); pintar();
+      })
+      .withEventHandler(BlipChat.CREATE_ACCOUNT_EVENT, function () { log('CREATE_ACCOUNT_EVENT'); })
+      .build();
+  }
+
+  function rebuildar(motivo) {
+    var t0 = performance.now();
+    try { client.destroy(); } catch (e) { log('destroy() falhou: '+e.message,'err'); }
+    loaded = false; isChatOpen = false;
+    montarWidget();
+    nRebuild++; tRebuild = Math.round(performance.now()-t0)+'ms';
+    log('rebuild ('+motivo+') em '+tRebuild,'warn');
+  }
 
   function enviarMensagemAgente() {
     client.sendMessage({
-      type: 'text/plain',
-      content: 'Quero uma recomendação de fechadura',
-      metadata: { intent: 'recomendacao-fechaduras', ctxKey: getCtxKey() }
+      type:'text/plain',
+      content:'Quero uma recomendação de fechadura',
+      metadata:{ intent:'recomendacao-fechaduras', ctxKey:getCtxKey() }
     });
     log('mensagem injetada (intent: recomendacao-fechaduras)');
   }
 
   function dispararAgente() {
     if (conversaOciosa()) {
-      if (loaded) { enviarMensagemAgente(); }
-      else { cameFromCTA = true; log('flag cameFromCTA levantada — aguardando LOAD_EVENT', 'warn'); }
-    } else {
-      log('conversa recente — abre sem injetar', 'warn');
-    }
+      if (loaded) enviarMensagemAgente();
+      else { cameFromCTA = true; log('cameFromCTA levantada — aguardando LOAD_EVENT','warn'); }
+    } else log('conversa recente — abre sem injetar','warn');
     client.toogleChat();
   }
 
-  function montarWidget() {
-    client = new BlipChat();
-    client
-      .withAppKey(APP_KEY)
-      .withButton({ color: '#00a75d', icon: ICON })
-      .withCustomCommonUrl(COMMON_URL)
-      .withCustomMessageMetadata({ ctxKey: getCtxKey(), origem: 'webchat-loja' })
-      .withEventHandler(BlipChat.LOAD_EVENT, function () {
-        loaded = true; marcarAtividade(); log('LOAD_EVENT');
-        if (!cameFromCTA) return;
-        cameFromCTA = false;
-        enviarMensagemAgente();
-      })
-      .withEventHandler(BlipChat.ENTER_EVENT, function () { marcarAtividade(); log('ENTER_EVENT'); pintar(); })
-      .withEventHandler(BlipChat.LEAVE_EVENT, function () { marcarAtividade(); log('LEAVE_EVENT'); pintar(); })
-      .withEventHandler(BlipChat.CREATE_ACCOUNT_EVENT, function () { log('CREATE_ACCOUNT_EVENT'); })
-      .build();
-    log('widget construído (uma vez, como no header da loja)');
-  }
+  // ---------------- SPA ----------------
+  var rotaAtual = 'home', modo = 'pull-enter';
 
-  // =====================================================================
-  //  "SPA" DA LOJA
-  // =====================================================================
-  var rotaAtual = 'home';
-
-  function ehFechadura(rota) {
-    if (rota === 'plp') return true;
-    var p = CATALOGO[rota];
-    return !!(p && p.fechadura);
+  function ehFechadura(r) {
+    if (r === 'plp') return true;
+    var p = CATALOGO[r]; return !!(p && p.fechadura);
   }
 
   function navegar(id) {
-    rotaAtual = id;
-    render();
-    var r = ROTAS.filter(function (x) { return x.id === id; })[0];
-
-    if (ehFechadura(id)) {
-      postContexto(r.tipo === 'pdp' ? id : null, r.tipo);
-    } else {
-      postContexto(null, 'fora-categoria');
+    rotaAtual = id; render();
+    var c = contextoDaRota();
+    if (modo === 'pull-rota') {
+      if (ehFechadura(id)) postContexto(c.sku, c.tipo, 'rota');
+      else postContexto(null, 'fora-categoria', 'rota');
+    } else if (modo === 'pull-enter') {
+      if (isChatOpen) postContexto(c.sku, c.tipo, 'rota c/ chat aberto');
+    } else if (modo === 'rebuild') {
+      if (!isChatOpen) rebuildar('troca de rota');
+      else log('chat aberto — rebuild adiado (metadata fica velho)','warn');
     }
     pintar();
   }
 
   function render() {
     document.getElementById('rota').textContent =
-      rotaAtual === 'home' ? '/' :
-      rotaAtual === 'plp'  ? '/controle-de-acesso/fechaduras-digitais' : '/p/' + rotaAtual;
-
-    var nav = document.getElementById('nav');
-    nav.innerHTML = '';
+      rotaAtual==='home' ? '/' : rotaAtual==='plp' ? '/controle-de-acesso/fechaduras-digitais' : '/p/'+rotaAtual;
+    var nav = document.getElementById('nav'); nav.innerHTML = '';
     ROTAS.forEach(function (r) {
-      var b = document.createElement('button');
-      b.textContent = r.label;
-      if (r.id === rotaAtual) b.setAttribute('aria-current', 'page');
-      b.onclick = function () { navegar(r.id); };
-      nav.appendChild(b);
+      var b = document.createElement('button'); b.textContent = r.label;
+      if (r.id===rotaAtual) b.setAttribute('aria-current','page');
+      b.onclick = function(){ navegar(r.id); }; nav.appendChild(b);
     });
-
     var c = document.getElementById('conteudo');
-    if (rotaAtual === 'home') {
-      c.innerHTML = '<p style="font-size:13.5px;color:#63707d">Página fora da categoria de fechaduras. O pop-up não aparece aqui e o contexto é marcado como <code>fora-categoria</code>.</p>';
-    } else if (rotaAtual === 'plp') {
-      var html = '<div class="grid">';
-      ['4670040', '4670102', '4670220'].forEach(function (sku) {
-        var p = CATALOGO[sku];
-        html += '<div class="card" data-sku="' + sku + '"><div class="nome">' + p.nome + '</div>' +
-                '<div class="preco">R$ ' + p.preco.replace('.', ',') + '</div>' +
-                '<div class="sku">SKU ' + sku + '</div></div>';
+    if (rotaAtual==='home') {
+      c.innerHTML = '<p style="font-size:13.5px;color:#63707d">Fora da categoria de fechaduras. Sem pop-up; contexto marcado como <code>fora-categoria</code>.</p>';
+    } else if (rotaAtual==='plp') {
+      var h = '<div class="grid">';
+      ['4670040','4670102','4670220'].forEach(function (s) {
+        var p = CATALOGO[s];
+        h += '<div class="card" data-sku="'+s+'"><div class="nome">'+p.nome+'</div><div class="preco">R$ '+
+             p.preco.replace('.',',')+'</div><div class="sku">SKU '+s+'</div></div>';
       });
-      c.innerHTML = html + '</div>';
+      c.innerHTML = h+'</div>';
       Array.prototype.forEach.call(c.querySelectorAll('.card'), function (el) {
-        el.onclick = function () { navegar(el.dataset.sku); };
+        el.onclick = function(){ navegar(el.dataset.sku); };
       });
     } else {
       var p2 = CATALOGO[rotaAtual];
-      c.innerHTML = '<div class="pdp"><h2>' + p2.nome + '</h2>' +
-        '<div class="sku">Código do Produto: ' + rotaAtual + '</div>' +
-        '<div class="de">De: R$ ' + p2.precoDe.replace('.', ',') + '</div>' +
-        '<div class="preco">R$ ' + p2.preco.replace('.', ',') + '</div>' +
-        (p2.fechadura ? '' : '<div class="mock">Produto fora da categoria — o pop-up não aparece.</div>') +
-        '<div class="mock">Dados mockados. No real, resolvidos server-side na API de catálogo da VTEX a partir do SKU.</div></div>';
+      c.innerHTML = '<div class="pdp"><h2>'+p2.nome+'</h2><div class="sku">Código do Produto: '+rotaAtual+
+        '</div><div class="de">De: R$ '+p2.precoDe.replace('.',',')+'</div><div class="preco">R$ '+
+        p2.preco.replace('.',',')+'</div>'+
+        (p2.fechadura?'':'<div class="mock">Fora da categoria — sem pop-up.</div>')+
+        '<div class="mock">Dados mockados. No real, resolvidos server-side na API de catálogo da VTEX.</div></div>';
     }
   }
 
-  function popupDeveAparecer() { return ehFechadura(rotaAtual) && conversaOciosa(); }
+  function popupVisivel() { return ehFechadura(rotaAtual) && conversaOciosa(); }
 
   function pintar() {
     document.getElementById('v-ctxkey').textContent = getCtxKey();
-    document.getElementById('v-loaded').innerHTML   = loaded ? '<span class="sim">true</span>' : '<span class="neutro">false</span>';
-
-    var t = localStorage.getItem(K_ATIVIDADE);
-    document.getElementById('v-atividade').textContent = t
-      ? Math.round((Date.now() - Number(t)) / 1000) + 's atrás' : 'nunca';
-
+    document.getElementById('v-loaded').innerHTML = loaded?'<span class="sim">true</span>':'<span class="neutro">false</span>';
+    document.getElementById('v-aberto').innerHTML = isChatOpen?'<span class="sim">true</span>':'<span class="neutro">false</span>';
+    var t = localStorage.getItem(K_ATIV);
+    document.getElementById('v-atividade').textContent = t ? Math.round((Date.now()-Number(t))/1000)+'s atrás' : 'nunca';
     var oc = conversaOciosa();
-    document.getElementById('v-ociosa').innerHTML = oc
-      ? '<span class="sim">true → injeta</span>' : '<span class="nao">false → não injeta</span>';
-
-    var pv = popupDeveAparecer();
-    document.getElementById('v-popup').innerHTML = pv
-      ? '<span class="sim">sim</span>' : '<span class="neutro">não</span>';
+    document.getElementById('v-ociosa').innerHTML = oc?'<span class="sim">true → injeta</span>':'<span class="nao">false → não injeta</span>';
+    var pv = popupVisivel();
+    document.getElementById('v-popup').innerHTML = pv?'<span class="sim">sim</span>':'<span class="neutro">não</span>';
     document.getElementById('popup').classList.toggle('on', pv);
+    document.getElementById('v-meta').textContent =
+      Object.keys(metaGlobal).map(function(k){ return k+'='+(k==='ctxKey'?'…':metaGlobal[k]); }).join('  ');
+
+    document.getElementById('c-post').textContent = nPost;
+    document.getElementById('c-rebuild').textContent = nRebuild;
+    document.getElementById('c-tempo').textContent = tRebuild;
+    var ifr = document.querySelectorAll('iframe[src*="blip"]').length;
+    document.getElementById('c-iframe').innerHTML = ifr>1 ? '<span class="nao">'+ifr+'</span>' : String(ifr);
+    document.getElementById('c-script').textContent = document.querySelectorAll('script[src*="blip-chat-widget"]').length;
   }
 
   function pintarTabela() {
-    var lista = store[getCtxKey()] || [];
-    var el = document.getElementById('tabela');
-    if (!lista.length) { el.innerHTML = '<p class="vazio">Nenhum registro ainda.</p>'; return; }
-    var h = '<table><tr><th>capturadoEm</th><th>tipoPagina</th><th>produto</th></tr>';
-    lista.slice().reverse().forEach(function (r, i) {
-      h += '<tr' + (i === 0 ? ' class="novo"' : '') + '><td>' + r.capturadoEm + '</td><td>' +
-           r.tipoPagina + '</td><td>' + (r.nome || '—') + '</td></tr>';
+    var l = store[getCtxKey()]||[], el = document.getElementById('tabela');
+    if (!l.length) { el.innerHTML = '<p class="vazio">Nenhum registro.</p>'; return; }
+    var h = '<table><tr><th>capturadoEm</th><th>tipo</th><th>produto</th></tr>';
+    l.slice().reverse().forEach(function (r,i) {
+      h += '<tr'+(i===0?' class="novo"':'')+'><td>'+r.capturadoEm+'</td><td>'+r.tipoPagina+'</td><td>'+(r.nome||'—')+'</td></tr>';
     });
-    el.innerHTML = h + '</table>';
+    el.innerHTML = h+'</table>';
   }
 
-  // =====================================================================
-  //  CONTROLES
-  // =====================================================================
+  // ---------------- controles ----------------
   document.getElementById('btn-popup').onclick = dispararAgente;
-
-  document.getElementById('a-ociosa').onclick = function () {
-    localStorage.setItem(K_ATIVIDADE, String(Date.now() - JANELA_SEGURA - 60000));
-    log('ociosidade forçada', 'warn'); pintar();
-  };
-  document.getElementById('a-ativa').onclick = function () { marcarAtividade(); log('atividade marcada', 'warn'); };
-  document.getElementById('a-limpa-ctx').onclick = function () {
-    store = {}; ultimoSkuEnviado = null; pintarTabela(); log('contexto limpo', 'warn');
-  };
-  document.getElementById('a-nova-key').onclick = function () {
-    localStorage.removeItem(K_CTX); store = {}; ultimoSkuEnviado = null;
-    log('nova ctxKey: ' + getCtxKey() + ' — recarregue para o widget adotá-la', 'warn');
-    pintar(); pintarTabela();
-  };
-  document.getElementById('a-backend').onclick = function () {
+  document.getElementById('modos').addEventListener('change', function (e) {
+    modo = e.target.value; ultimoSku = undefined;
+    Array.prototype.forEach.call(document.querySelectorAll('.modo'), function (el) {
+      el.classList.toggle('sel', el.dataset.modo === modo);
+    });
+    log('modo: '+modo,'warn');
+    rebuildar('troca de modo');
+    pintar();
+  });
+  document.getElementById('a-ociosa').onclick = function(){ localStorage.setItem(K_ATIV,String(Date.now()-JANELA-60000)); log('ociosidade forçada','warn'); pintar(); };
+  document.getElementById('a-ativa').onclick  = function(){ marcarAtividade(); log('atividade marcada','warn'); pintar(); };
+  document.getElementById('a-limpa').onclick  = function(){ store={}; ultimoSku=undefined; pintarTabela(); log('contexto limpo','warn'); };
+  document.getElementById('a-zera').onclick   = function(){ nPost=0; nRebuild=0; tRebuild='—'; pintar(); };
+  document.getElementById('a-rebuild').onclick= function(){ rebuildar('manual'); pintar(); };
+  document.getElementById('a-backend').onclick= function(){
     urlBackend = document.getElementById('url-backend').value.trim();
-    log(urlBackend ? 'backend real: ' + urlBackend : 'voltou para o mock', 'warn');
+    log(urlBackend?('backend real: '+urlBackend):'voltou ao mock','warn');
   };
 
   var atMarcado = null;
-  document.getElementById('a-marcar-at').onclick = function () {
-    atMarcado = Date.now();
-    log('at marcado: ' + atMarcado + ' (produto atual = resposta correta)', 'warn');
+  document.getElementById('a-marcar').onclick = function(){
+    atMarcado = Date.now(); log('at marcado: '+atMarcado,'warn');
   };
-  document.getElementById('a-rodar-get').onclick = function () {
-    if (!atMarcado) { log('marque o instante primeiro', 'err'); return; }
-    getContexto(atMarcado, function (comAt) {
-      document.getElementById('r-at').className = 'resultado certo';
-      document.getElementById('r-at').innerHTML =
-        '<span class="rot">com at →</span> ' + (comAt ? (comAt.nome || comAt.tipoPagina) : '404');
+  document.getElementById('a-get').onclick = function(){
+    if (!atMarcado) { log('marque o instante primeiro','err'); return; }
+    getContexto(atMarcado, function (c) {
+      document.getElementById('r-at').innerHTML = '<span class="rot">com at →</span> '+(c?(c.nome||c.tipoPagina):'404');
     });
-    getContexto(null, function (ultimo) {
-      document.getElementById('r-ultimo').className = 'resultado errado';
-      document.getElementById('r-ultimo').innerHTML =
-        '<span class="rot">mais recente →</span> ' + (ultimo ? (ultimo.nome || ultimo.tipoPagina) : '404');
+    getContexto(null, function (u) {
+      document.getElementById('r-ult').innerHTML = '<span class="rot">mais recente →</span> '+(u?(u.nome||u.tipoPagina):'404');
     });
   };
 
-  // ---------- boot ----------
   window.onload = function () {
-    montarWidget();
-    render();
-    pintar();
-    pintarTabela();
+    montarWidget(); render(); pintar(); pintarTabela();
     setInterval(pintar, 1000);
-    log('simulação pronta');
+    log('simulação pronta — modo pull-enter');
   };
 })();
 </script>
