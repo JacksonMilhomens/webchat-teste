@@ -118,8 +118,13 @@
       <div class="modos" id="modos">
         <label class="modo" data-modo="rebuild">
           <input type="radio" name="modo" value="rebuild">
-          <span><b>A — destroy / build</b>
-          Sem backend. Na troca de rota com o chat fechado, o widget é reconstruído e o contexto vai no <code>withCustomMessageMetadata</code>.</span>
+          <span><b>A1 — destroy / build, chat fechado</b>
+          Sem backend. Reconstrói na troca de rota só com o chat fechado; o contexto vai no <code>withCustomMessageMetadata</code>.</span>
+        </label>
+        <label class="modo" data-modo="rebuild-sempre">
+          <input type="radio" name="modo" value="rebuild-sempre">
+          <span><b>A2 — destroy / build sempre</b>
+          Igual ao A, mas reconstrói também com o chat aberto. Metadata nunca fica velho; a conversa aberta some da tela.</span>
         </label>
         <label class="modo" data-modo="pull-rota">
           <input type="radio" name="modo" value="pull-rota">
@@ -264,8 +269,10 @@
     return null;
   }
 
+  function ehModoRebuild() { return modo === 'rebuild' || modo === 'rebuild-sempre'; }
+
   function postContexto(sku, tipo, motivo) {
-    if (modo === 'rebuild') return;                       // modo A não usa backend
+    if (ehModoRebuild()) return;                          // modos A não usam backend
     var chave = (sku||'') + '|' + tipo;
     if (chave === ultimoSku) { log('POST deduplicado ('+motivo+')','warn'); return; }
     ultimoSku = chave;
@@ -303,7 +310,7 @@
 
   function montarWidget() {
     var m = { ctxKey:getCtxKey(), origem:'webchat-loja' };
-    if (modo === 'rebuild') {
+    if (ehModoRebuild()) {
       var c = contextoDaRota();
       m.ctxTipoPagina = c.tipo;
       if (c.sku) { m.ctxSkuId = c.sku; m.ctxProduto = CATALOGO[c.sku].nome; m.ctxPreco = CATALOGO[c.sku].preco; }
@@ -377,6 +384,9 @@
     } else if (modo === 'rebuild') {
       if (!isChatOpen) rebuildar('troca de rota');
       else log('chat aberto — rebuild adiado (metadata fica velho)','warn');
+    } else if (modo === 'rebuild-sempre') {
+      if (isChatOpen) log('chat aberto — rebuild vai fechá-lo','warn');
+      rebuildar('troca de rota');
     }
     pintar();
   }
