@@ -53,6 +53,7 @@
   /* painel */
   .painel { display:grid; gap:13px; }
   .box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
+  .box.destaque { border-color:var(--warn); }
   .box h3 { font-size:12.5px; font-weight:600; margin:0 0 10px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); }
   .kv { display:grid; grid-template-columns:150px 1fr; gap:4px 10px; font-family:var(--mono); font-size:12px; }
   .kv dt { color:var(--dim); } .kv dd { margin:0; word-break:break-all; }
@@ -71,6 +72,7 @@
   button.ctl { font:inherit; font-size:12.5px; padding:6px 11px; border-radius:5px; cursor:pointer;
                background:transparent; color:var(--ink); border:1px solid var(--line); }
   button.ctl:hover { border-color:var(--verde); color:var(--ok); }
+  button.ctl.ativo { border-color:var(--warn); color:var(--warn); }
   .backend { display:flex; gap:6px; }
   .backend input { flex:1; font:inherit; font-family:var(--mono); font-size:12px; padding:6px 9px;
                    background:#0d1116; border:1px solid var(--line); border-radius:5px; color:var(--ink); }
@@ -79,7 +81,7 @@
 
   table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11.5px; }
   th { text-align:left; color:var(--dim); font-weight:500; padding:4px 8px 6px 0; border-bottom:1px solid var(--line); }
-  td { padding:5px 8px 5px 0; border-bottom:1px solid #222933; vertical-align:top; }
+  td { padding:5px 8px 5px 0; border-bottom:1px solid #222933; vertical-align:top; word-break:break-all; }
   tr.novo td { color:var(--ok); }
   .vazio { color:var(--dim); font-size:12px; font-style:italic; }
   .resultado { font-family:var(--mono); font-size:12px; padding:9px 11px; border-radius:5px;
@@ -139,6 +141,22 @@
       </div>
     </div>
 
+    <div class="box destaque">
+      <h3>Teste de tipos — payload do site</h3>
+      <div class="acoes">
+        <button class="ctl" id="t-original">Payload do site (tipos originais)</button>
+        <button class="ctl" id="t-string">Payload do site (tudo string)</button>
+        <button class="ctl" id="t-padrao">Voltar ao payload padrão</button>
+      </div>
+      <div class="acoes" style="margin-top:6px">
+        <button class="ctl" id="t-enviar">Enviar mensagem de teste</button>
+      </div>
+      <div id="t-tabela" style="margin-top:10px"></div>
+      <p class="hint">Cada botão de payload faz destroy/build com aquele metadata fixo, inclusive nas trocas de rota. Depois,
+        digite uma mensagem no chat (é o teste mais fiel) ou use "Enviar mensagem de teste", e confira no Beholder
+        ou no histórico do contato se a mensagem chegou e com quais metadados. Rode primeiro com tipos originais, depois com tudo string, e compare.</p>
+    </div>
+
     <div class="box">
       <h3>Estado</h3>
       <dl class="kv">
@@ -148,6 +166,7 @@
         <dt>última atividade</dt><dd id="v-atividade">—</dd>
         <dt>conversaOciosa()</dt><dd id="v-ociosa">—</dd>
         <dt>pop-up visível</dt><dd id="v-popup">—</dd>
+        <dt>payload ativo</dt><dd id="v-payload">—</dd>
         <dt>metadata global</dt><dd id="v-meta">—</dd>
       </dl>
     </div>
@@ -210,6 +229,19 @@
   var K_CTX = 'intelbras.ctxKey', K_ATIV = 'intelbras.ultimaAtividadeChat';
   var JANELA = 60*60*1000, CTX_TTL = 30*60*1000, MAX_REG = 10, TOL = 2000;
 
+  // Payload exatamente como o site está enviando (copiado do console dele), com os tipos originais:
+  // ctxCategories é array e ctxPreco é número.
+  var CTX_SITE = {
+    origem:        'webchat-loja',
+    ctxTipoPagina: 'store.product',
+    ctxUrl:        'https://chatcomcontext--intelbras.myvtex.com/fechadura-inteligente-de-embutir-mfv3000-intelbras/p',
+    ctxPath:       '/fechadura-inteligente-de-embutir-mfv3000-intelbras/p',
+    ctxProduto:    'Fechadura Inteligente de Embutir com Biometria MFV 3000',
+    ctxCategories: ['/Controle de Acesso/Fechaduras digitais/', '/Controle de Acesso/'],
+    ctxPreco:      799.9,
+    ctxSkuId:      '4670040'
+  };
+
   var CATALOGO = {
     '4670040': { nome:'Fechadura Inteligente de Embutir com Biometria MFV 3000', preco:'799.90', precoDe:'1285.34', fechadura:true },
     '4670102': { nome:'Fechadura Digital de Sobrepor FR 102',                    preco:'206.91', precoDe:'401.60',  fechadura:true },
@@ -243,6 +275,44 @@
   function conversaOciosa() {
     var t = localStorage.getItem(K_ATIV);
     return !t || (Date.now() - Number(t)) > JANELA;
+  }
+
+  // ---------------- teste de tipos ----------------
+  // null = payload padrão da simulação; 'original' = CTX_SITE como está; 'string' = CTX_SITE com tudo convertido
+  var payloadTeste = null;
+
+  function tudoString(obj) {
+    var r = {};
+    Object.keys(obj).forEach(function (k) {
+      var v = obj[k];
+      if (v === undefined || v === null) return;
+      r[k] = typeof v === 'string' ? v : JSON.stringify(v);
+    });
+    return r;
+  }
+  function payloadDoTeste() {
+    if (payloadTeste === 'original') return JSON.parse(JSON.stringify(CTX_SITE));
+    if (payloadTeste === 'string')   return tudoString(CTX_SITE);
+    return null;
+  }
+  function tipoDe(v) { return Array.isArray(v) ? 'array' : typeof v; }
+  function mostrarValor(v) { return typeof v === 'string' ? v : JSON.stringify(v); }
+
+  function pintarPayloadTeste() {
+    var el = document.getElementById('t-tabela');
+    var p = payloadDoTeste();
+    ['t-original','t-string','t-padrao'].forEach(function (id) {
+      document.getElementById(id).classList.remove('ativo');
+    });
+    document.getElementById(payloadTeste==='original'?'t-original':payloadTeste==='string'?'t-string':'t-padrao')
+      .classList.add('ativo');
+    if (!p) { el.innerHTML = '<p class="vazio">Usando o payload padrão da simulação.</p>'; return; }
+    var h = '<table><tr><th>chave</th><th>tipo</th><th>valor</th></tr>';
+    Object.keys(p).forEach(function (k) {
+      var t = tipoDe(p[k]);
+      h += '<tr><td>'+k+'</td><td class="'+(t==='string'?'sim':'nao')+'">'+t+'</td><td>'+mostrarValor(p[k])+'</td></tr>';
+    });
+    el.innerHTML = h+'</table>';
   }
 
   // ---------------- backend mock ----------------
@@ -309,13 +379,19 @@
   }
 
   function montarWidget() {
-    var m = { ctxKey:getCtxKey(), origem:'webchat-loja' };
-    if (ehModoRebuild()) {
-      var c = contextoDaRota();
-      m.ctxTipoPagina = c.tipo;
-      if (c.sku) { m.ctxSkuId = c.sku; m.ctxProduto = CATALOGO[c.sku].nome; m.ctxPreco = CATALOGO[c.sku].preco; }
+    var m = payloadDoTeste();
+    if (m) {
+      log('build com payload do site ('+(payloadTeste==='original'?'tipos originais':'tudo string')+')','warn');
+    } else {
+      m = { ctxKey:getCtxKey(), origem:'webchat-loja' };
+      if (ehModoRebuild()) {
+        var c = contextoDaRota();
+        m.ctxTipoPagina = c.tipo;
+        if (c.sku) { m.ctxSkuId = c.sku; m.ctxProduto = CATALOGO[c.sku].nome; m.ctxPreco = CATALOGO[c.sku].preco; }
+      }
     }
     metaGlobal = m;
+    console.log('[simulação] withCustomMessageMetadata:', m);
 
     client = new BlipChat();
     client.withAppKey(APP_KEY)
@@ -437,8 +513,11 @@
     var pv = popupVisivel();
     document.getElementById('v-popup').innerHTML = pv?'<span class="sim">sim</span>':'<span class="neutro">não</span>';
     document.getElementById('popup').classList.toggle('on', pv);
+    document.getElementById('v-payload').innerHTML =
+      payloadTeste==='original' ? '<span class="nao">site — tipos originais</span>' :
+      payloadTeste==='string'   ? '<span class="sim">site — tudo string</span>' : 'padrão';
     document.getElementById('v-meta').textContent =
-      Object.keys(metaGlobal).map(function(k){ return k+'='+(k==='ctxKey'?'…':metaGlobal[k]); }).join('  ');
+      Object.keys(metaGlobal).map(function(k){ return k+'='+(k==='ctxKey'?'…':mostrarValor(metaGlobal[k])); }).join('  ');
 
     document.getElementById('c-post').textContent = nPost;
     document.getElementById('c-rebuild').textContent = nRebuild;
@@ -479,6 +558,25 @@
     log(urlBackend?('backend real: '+urlBackend):'voltou ao mock','warn');
   };
 
+  // teste de tipos
+  function trocarPayload(novo, rotulo) {
+    payloadTeste = novo;
+    pintarPayloadTeste();
+    rebuildar('payload: '+rotulo);
+    pintar();
+  }
+  document.getElementById('t-original').onclick = function(){ trocarPayload('original', 'site, tipos originais'); };
+  document.getElementById('t-string').onclick   = function(){ trocarPayload('string',   'site, tudo string'); };
+  document.getElementById('t-padrao').onclick   = function(){ trocarPayload(null,       'padrão'); };
+  document.getElementById('t-enviar').onclick   = function(){
+    if (!loaded) { log('chat ainda não carregou — espere o LOAD_EVENT','err'); return; }
+    var rotulo = payloadTeste==='original' ? 'tipos originais' : payloadTeste==='string' ? 'tudo string' : 'padrão';
+    // Sem metadata próprio na mensagem, para que só o withCustomMessageMetadata entre em jogo.
+    client.sendMessage({ type:'text/plain', content:'Teste de metadata ('+rotulo+') '+new Date().toLocaleTimeString('pt-BR') });
+    if (!isChatOpen) client.toogleChat();
+    log('mensagem de teste enviada ('+rotulo+')');
+  };
+
   var atMarcado = null;
   document.getElementById('a-marcar').onclick = function(){
     atMarcado = Date.now(); log('at marcado: '+atMarcado,'warn');
@@ -494,7 +592,7 @@
   };
 
   window.onload = function () {
-    montarWidget(); render(); pintar(); pintarTabela();
+    montarWidget(); render(); pintar(); pintarTabela(); pintarPayloadTeste();
     setInterval(pintar, 1000);
     log('simulação pronta — modo pull-enter');
   };
