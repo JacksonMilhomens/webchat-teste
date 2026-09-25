@@ -138,6 +138,12 @@
           <span><b>C — pull, POST no ENTER_EVENT</b>
           POST ao abrir o chat, mais POST na troca de rota só se o chat estiver aberto.</span>
         </label>
+        <label class="modo" data-modo="live">
+          <input type="radio" name="modo" value="live">
+          <span><b>D — metadata ao vivo, sem rebuild</b>
+          Sem backend e sem destroy/build. Na troca de rota, reenvia o <code>CustomMessageMetadata</code> ao iframe por
+          <code>postMessage</code> e atualiza o valor guardado no widget. A conversa aberta continua na tela. Usa API interna (v1.12.0).</span>
+        </label>
       </div>
     </div>
 
@@ -152,7 +158,8 @@
         <button class="ctl" id="t-enviar">Enviar mensagem de teste</button>
       </div>
       <div id="t-tabela" style="margin-top:10px"></div>
-      <p class="hint">Cada botão de payload faz destroy/build com aquele metadata fixo, inclusive nas trocas de rota. Depois,
+      <p class="hint">Cada botão de payload faz destroy/build com aquele metadata fixo, inclusive nas trocas de rota
+        (no modo D, atualiza ao vivo em vez de reconstruir). Depois,
         digite uma mensagem no chat (é o teste mais fiel) ou use "Enviar mensagem de teste", e confira no Beholder
         ou no histórico do contato se a mensagem chegou e com quais metadados. Rode primeiro com tipos originais, depois com tudo string, e compare.</p>
     </div>
@@ -177,6 +184,8 @@
         <dt>POSTs</dt><dd id="c-post">0</dd>
         <dt>rebuilds</dt><dd id="c-rebuild">0</dd>
         <dt>último rebuild</dt><dd id="c-tempo">—</dd>
+        <dt>updates ao vivo</dt><dd id="c-live">0</dd>
+        <dt>último update</dt><dd id="c-live-dest">—</dd>
         <dt>iframes no DOM</dt><dd id="c-iframe">0</dd>
         <dt>scripts no DOM</dt><dd id="c-script">0</dd>
       </dl>
@@ -340,9 +349,11 @@
   }
 
   function ehModoRebuild() { return modo === 'rebuild' || modo === 'rebuild-sempre'; }
+  function ehModoLive()    { return modo === 'live'; }
+  function contextoNoMetadata() { return ehModoRebuild() || ehModoLive(); }   // modos A e D: contexto vai no metadata
 
   function postContexto(sku, tipo, motivo) {
-    if (ehModoRebuild()) return;                          // modos A não usam backend
+    if (contextoNoMetadata()) return;                     // modos A e D não usam backend
     var chave = (sku||'') + '|' + tipo;
     if (chave === ultimoSku) { log('POST deduplicado ('+motivo+')','warn'); return; }
     ultimoSku = chave;
@@ -378,18 +389,45 @@
              tipo: ehF ? r.tipo : 'fora-categoria' };
   }
 
-  function montarWidget() {
-    var m = payloadDoTeste();
-    if (m) {
-      log('build com payload do site ('+(payloadTeste==='original'?'tipos originais':'tudo string')+')','warn');
-    } else {
-      m = { ctxKey:getCtxKey(), origem:'webchat-loja' };
-      if (ehModoRebuild()) {
-        var c = contextoDaRota();
-        m.ctxTipoPagina = c.tipo;
-        if (c.sku) { m.ctxSkuId = c.sku; m.ctxProduto = CATALOGO[c.sku].nome; m.ctxPreco = CATALOGO[c.sku].preco; }
-      }
+  // Metadata completo para a rota atual (ou o payload de teste, se ativo).
+  // Sempre o objeto inteiro: um novo CustomMessageMetadata substitui o anterior, não se soma a ele.
+  function metadataAtual() {
+    var t = payloadDoTeste();
+    if (t) return t;
+    var m = { ctxKey:getCtxKey(), origem:'webchat-loja' };
+    if (contextoNoMetadata()) {
+      var c = contextoDaRota();
+      m.ctxTipoPagina = c.tipo;
+      if (c.sku) { m.ctxSkuId = c.sku; m.ctxProduto = CATALOGO[c.sku].nome; m.ctxPreco = CATALOGO[c.sku].preco; }
     }
+    return m;
+  }
+
+  // Modo D: troca o metadata sem destroy/build.
+  // 1) client.widget.customMessageMetadata: o wrapper reenvia esse valor sempre que o iframe fica pronto
+  //    (iframe criado depois, ou recarregado). Sem isso, um iframe novo receberia o valor antigo do build.
+  // 2) postMessage CustomMessageMetadata: atualiza o iframe que já existe.
+  var nLive = 0, destLive = '—';
+  function atualizarAoVivo(motivo) {
+    var m = metadataAtual();
+    metaGlobal = m;
+    if (!client || !client.widget) { log('update ao vivo: client.widget indisponível — API interna mudou?','err'); return; }
+    client.widget.customMessageMetadata = m;
+    var f = document.getElementById('blip-chat-iframe');
+    if (f && f.contentWindow) {   // posta mesmo antes do LOAD_EVENT: se o iframe ainda não escuta, o wrapper reenvia o valor guardado quando ele ficar pronto
+      f.contentWindow.postMessage({ code:'CustomMessageMetadata', customMessageMetadata:m }, new URL(f.src).origin);
+      destLive = 'widget + iframe';
+    } else {
+      destLive = 'só widget (iframe ainda não criado)';
+    }
+    nLive++;
+    console.log('[simulação] metadata ao vivo ('+motivo+'):', m);
+    log('update ao vivo ('+motivo+') → '+destLive);
+  }
+
+  function montarWidget() {
+    var m = metadataAtual();
+    if (payloadTeste) log('build com payload do site ('+(payloadTeste==='original'?'tipos originais':'tudo string')+')','warn');
     metaGlobal = m;
     console.log('[simulação] withCustomMessageMetadata:', m);
 
@@ -463,6 +501,8 @@
     } else if (modo === 'rebuild-sempre') {
       if (isChatOpen) log('chat aberto — rebuild vai fechá-lo','warn');
       rebuildar('troca de rota');
+    } else if (modo === 'live') {
+      atualizarAoVivo('troca de rota');
     }
     pintar();
   }
@@ -522,6 +562,8 @@
     document.getElementById('c-post').textContent = nPost;
     document.getElementById('c-rebuild').textContent = nRebuild;
     document.getElementById('c-tempo').textContent = tRebuild;
+    document.getElementById('c-live').textContent = nLive;
+    document.getElementById('c-live-dest').textContent = destLive;
     var ifr = document.querySelectorAll('iframe[src*="blip"]').length;
     document.getElementById('c-iframe').innerHTML = ifr>1 ? '<span class="nao">'+ifr+'</span>' : String(ifr);
     document.getElementById('c-script').textContent = document.querySelectorAll('script[src*="blip-chat-widget"]').length;
@@ -551,7 +593,7 @@
   document.getElementById('a-ociosa').onclick = function(){ localStorage.setItem(K_ATIV,String(Date.now()-JANELA-60000)); log('ociosidade forçada','warn'); pintar(); };
   document.getElementById('a-ativa').onclick  = function(){ marcarAtividade(); log('atividade marcada','warn'); pintar(); };
   document.getElementById('a-limpa').onclick  = function(){ store={}; ultimoSku=undefined; pintarTabela(); log('contexto limpo','warn'); };
-  document.getElementById('a-zera').onclick   = function(){ nPost=0; nRebuild=0; tRebuild='—'; pintar(); };
+  document.getElementById('a-zera').onclick   = function(){ nPost=0; nRebuild=0; tRebuild='—'; nLive=0; destLive='—'; pintar(); };
   document.getElementById('a-rebuild').onclick= function(){ rebuildar('manual'); pintar(); };
   document.getElementById('a-backend').onclick= function(){
     urlBackend = document.getElementById('url-backend').value.trim();
@@ -562,7 +604,8 @@
   function trocarPayload(novo, rotulo) {
     payloadTeste = novo;
     pintarPayloadTeste();
-    rebuildar('payload: '+rotulo);
+    if (ehModoLive()) atualizarAoVivo('payload: '+rotulo);
+    else rebuildar('payload: '+rotulo);
     pintar();
   }
   document.getElementById('t-original').onclick = function(){ trocarPayload('original', 'site, tipos originais'); };
