@@ -1,645 +1,379 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Simulação ponta a ponta — Agente de fechaduras no webchat</title>
+<title>Teste – novo ícone do chat (TEC-3801)</title>
 <style>
-  :root {
-    --verde: #00a75d;
-    --bg: #0f1319; --panel: #171d26; --line: #2a323d;
-    --ink: #dfe5ec; --dim: #8793a3;
-    --ok: #4ec98a; --warn: #e0a640; --err: #e06a5c;
-    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  }
-  * { box-sizing: border-box; }
-  body { margin:0; padding:20px; background:var(--bg); color:var(--ink);
-         font:15px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
-  .wrap { max-width:1200px; margin:0 auto; display:grid; gap:18px; grid-template-columns:390px 1fr; align-items:start; }
-  @media (max-width:900px) { .wrap { grid-template-columns:1fr; } }
-  h1 { font-size:19px; font-weight:600; margin:0 0 3px; }
-  .sub { color:var(--dim); font-size:13.5px; margin:0 0 16px; }
-  .full { grid-column:1/-1; }
-
-  /* loja */
-  .loja { background:#fff; color:#17202b; border-radius:10px; overflow:hidden; position:relative; min-height:540px; }
-  .loja-head { border-bottom:1px solid #e6e9ed; padding:12px 14px; display:flex; align-items:center; justify-content:space-between; }
-  .logo { color:var(--verde); font-weight:700; letter-spacing:-.5px; font-size:17px; }
-  .rota { font-family:var(--mono); font-size:11px; color:#8a94a1; }
-  .nav { display:flex; gap:6px; flex-wrap:wrap; padding:10px 14px; border-bottom:1px solid #eef1f4; background:#fafbfc; }
-  .nav button { font:inherit; font-size:12.5px; padding:5px 10px; border:1px solid #d8dde3; background:#fff; color:#3a4552; border-radius:20px; cursor:pointer; }
-  .nav button:hover { border-color:var(--verde); color:var(--verde); }
-  .nav button[aria-current="page"] { background:var(--verde); border-color:var(--verde); color:#fff; }
-  .conteudo { padding:16px 14px 90px; }
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  .card { border:1px solid #e6e9ed; border-radius:8px; padding:10px; cursor:pointer; }
-  .card:hover { border-color:var(--verde); }
-  .card .nome { font-size:12.5px; line-height:1.35; min-height:52px; }
-  .card .preco { color:var(--verde); font-weight:700; font-size:15px; margin-top:6px; }
-  .card .sku { font-family:var(--mono); font-size:10px; color:#99a3ae; margin-top:3px; }
-  .pdp h2 { font-size:17px; margin:0 0 4px; line-height:1.3; }
-  .pdp .sku { font-family:var(--mono); font-size:11px; color:#99a3ae; }
-  .pdp .preco { color:var(--verde); font-weight:700; font-size:26px; margin:12px 0 2px; }
-  .pdp .de { color:#99a3ae; font-size:13px; text-decoration:line-through; }
-  .mock { margin-top:16px; padding:8px 10px; background:#f4f6f8; border-radius:6px; font-size:11.5px; color:#77838f; }
-  #popup { position:absolute; right:14px; bottom:78px; width:210px; background:#fff;
-           border:1px solid #dde2e8; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,.14); padding:12px; display:none; }
-  #popup.on { display:block; }
-  #popup p { margin:0 0 10px; font-size:13px; line-height:1.4; }
-  #popup button { width:100%; font:inherit; font-size:13px; font-weight:600; padding:8px; border-radius:20px;
-                  border:1px solid var(--verde); background:#fff; color:var(--verde); cursor:pointer; }
-  #popup button:hover { background:var(--verde); color:#fff; }
-
-  /* painel */
-  .painel { display:grid; gap:13px; }
-  .box { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:14px; }
-  .box.destaque { border-color:var(--warn); }
-  .box h3 { font-size:12.5px; font-weight:600; margin:0 0 10px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); }
-  .kv { display:grid; grid-template-columns:150px 1fr; gap:4px 10px; font-family:var(--mono); font-size:12px; }
-  .kv dt { color:var(--dim); } .kv dd { margin:0; word-break:break-all; }
-  .sim { color:var(--ok); } .nao { color:var(--err); } .neutro { color:var(--warn); }
-
-  .modos { display:grid; gap:7px; }
-  .modo { display:flex; gap:9px; align-items:flex-start; padding:9px 11px; border:1px solid var(--line);
-          border-radius:6px; cursor:pointer; }
-  .modo:hover { border-color:#3c4756; }
-  .modo.sel { border-color:var(--verde); background:#13241c; }
-  .modo input { margin:3px 0 0; accent-color:var(--verde); }
-  .modo b { display:block; font-size:13px; font-weight:600; margin-bottom:2px; }
-  .modo span { font-size:12px; color:var(--dim); line-height:1.4; }
-
-  .acoes { display:flex; flex-wrap:wrap; gap:6px; }
-  button.ctl { font:inherit; font-size:12.5px; padding:6px 11px; border-radius:5px; cursor:pointer;
-               background:transparent; color:var(--ink); border:1px solid var(--line); }
-  button.ctl:hover { border-color:var(--verde); color:var(--ok); }
-  button.ctl.ativo { border-color:var(--warn); color:var(--warn); }
-  .backend { display:flex; gap:6px; }
-  .backend input { flex:1; font:inherit; font-family:var(--mono); font-size:12px; padding:6px 9px;
-                   background:#0d1116; border:1px solid var(--line); border-radius:5px; color:var(--ink); }
-  .backend input:focus { outline:none; border-color:var(--verde); }
-  .hint { color:var(--dim); font-size:12px; margin:8px 0 0; }
-
-  table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:11.5px; }
-  th { text-align:left; color:var(--dim); font-weight:500; padding:4px 8px 6px 0; border-bottom:1px solid var(--line); }
-  td { padding:5px 8px 5px 0; border-bottom:1px solid #222933; vertical-align:top; word-break:break-all; }
-  tr.novo td { color:var(--ok); }
-  .vazio { color:var(--dim); font-size:12px; font-style:italic; }
-  .resultado { font-family:var(--mono); font-size:12px; padding:9px 11px; border-radius:5px;
-               background:#0d1116; border:1px solid var(--line); margin-top:7px; }
-  .resultado .rot { color:var(--dim); }
-  #log { font-family:var(--mono); font-size:11.5px; line-height:1.7; max-height:200px; overflow-y:auto;
-         background:#0d1116; border:1px solid var(--line); border-radius:5px; padding:10px; }
-  #log div { color:var(--dim); } #log b { color:var(--ok); font-weight:500; }
-  #log i { color:var(--warn); font-style:normal; } #log s { color:var(--err); text-decoration:none; }
+  /* Só para a página de teste. No site, não copie este bloco. */
+  body { margin: 0; font-family: "Intelbras Sans", system-ui, sans-serif; color: #163134; background: #fff; }
+  .pagina-teste { max-width: 720px; margin: 64px auto; padding: 0 24px; line-height: 1.5; }
+  .pagina-teste code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <div class="full">
-    <h1>Simulação ponta a ponta — Agente de fechaduras no webchat</h1>
-    <p class="sub">Router de e-commerce de <b>homologação</b>. Três estratégias de entrega do contexto, alternáveis em runtime.</p>
+<main class="pagina-teste">
+  <h1>Página de teste do chat</h1>
+  <p>O launcher novo fica no canto inferior direito. Passe o mouse no ícone para ver o balão, clique no X pequeno para recolher na lateral e clique no ícone ou na aba para abrir o chat.</p>
+  <p>Para voltar ao estado inicial depois de recolher, feche a aba do navegador ou rode <code>sessionStorage.clear()</code> no console.</p>
+</main>
+
+<!-- =====================================================================
+     COPIE DAQUI ...
+     (substitui o script de instalação atual do Blip Chat)
+     ===================================================================== -->
+
+<style>
+  /* ---------- Tokens do Figma (TEC-3801) ---------- */
+  :root {
+    --ib-verde: #06CB3F;
+    --ib-escuro: #163134;
+    --ib-fab: 70px;          /* ícone desktop */
+    --ib-badge: 22px;        /* X de recolher */
+    --ib-direita: 35px;      /* distância da borda direita */
+    --ib-base: 24px;         /* distância da borda inferior */
+    --ib-chat-largura: 450px;
+    --ib-chat-altura: 600px;
+    --ib-chat-gap: 12px;     /* espaço entre a janela e o botão X */
+  }
+  @media (max-width: 480px) {
+    :root { --ib-fab: 50px; --ib-badge: 16px; --ib-direita: 20px; --ib-base: 20px; }
+  }
+
+  /* ---------- Esconde o botão padrão da Blip ---------- */
+  #blip-chat-container #blip-chat-open-iframe { display: none !important; }
+
+  /* Contador de mensagens não lidas da Blip, reposicionado sobre o ícone novo */
+  #blip-chat-notifications {
+    right: calc(var(--ib-direita) + var(--ib-fab) - 14px) !important;
+    bottom: calc(var(--ib-base) + var(--ib-fab) - 14px) !important;
+    z-index: 1000002;
+  }
+
+  /* ---------- Janela do chat (desktop) ----------
+     No celular a Blip abre em tela cheia; por isso só mexemos acima de 480px. */
+  @media (min-width: 481px) and (min-height: 421px) {
+    #blip-chat-container #blip-chat-iframe {
+      right: calc(var(--ib-direita) + var(--ib-fab) + var(--ib-chat-gap)) !important;
+      bottom: var(--ib-base) !important;
+      width: min(var(--ib-chat-largura), calc(100vw - var(--ib-direita) - var(--ib-fab) - var(--ib-chat-gap) - 24px)) !important;
+      border-radius: 40px !important;
+      box-shadow: 0 1px 10px rgba(0, 0, 0, 0.15) !important;
+      background: #F5F5F5 !important;
+      overflow: hidden;
+    }
+    #blip-chat-container #blip-chat-iframe.blip-chat-iframe-opened {
+      height: min(var(--ib-chat-altura), calc(100vh - var(--ib-base) * 2)) !important;
+      max-height: none !important;
+    }
+  }
+
+  /* ---------- Launcher próprio ---------- */
+  #ib-chat { font-family: "Intelbras Sans", system-ui, -apple-system, "Segoe UI", sans-serif; }
+  #ib-chat button { font: inherit; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; color: inherit; }
+  #ib-chat button:focus-visible { outline: 3px solid var(--ib-escuro); outline-offset: 3px; }
+
+  .ib-icone {
+    position: fixed;
+    right: var(--ib-direita);
+    bottom: var(--ib-base);
+    z-index: 1000001;
+    width: var(--ib-fab);
+    height: var(--ib-fab);
+    transition: opacity 250ms, transform 250ms;
+  }
+
+  .ib-fab {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--ib-verde) !important;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 2px 8px rgba(22, 49, 52, 0.18);
+    transition: transform 150ms;
+  }
+  .ib-fab:active { transform: scale(0.94); }
+  .ib-fab svg { width: 64%; height: 64%; }
+  .ib-fab .ib-svg-fechar { display: none; width: 34%; height: 34%; }
+
+  .ib-recolher {
+    position: absolute;
+    top: -7px;
+    right: calc(var(--ib-badge) * -0.77);
+    width: var(--ib-badge);
+    height: var(--ib-badge);
+    border-radius: 50%;
+    background: var(--ib-escuro) !important;
+    display: grid;
+    place-items: center;
+  }
+  .ib-recolher svg { width: 45%; height: 45%; }
+  /* área de toque maior sem mudar o visual */
+  .ib-recolher::after { content: ""; position: absolute; inset: -10px; }
+
+  .ib-balao {
+    position: absolute;
+    right: calc(100% + 6px);
+    bottom: 0;
+    box-sizing: border-box;
+    width: 100px;
+    min-height: 90px;
+    padding: 11px 14px 11px 16px;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    color: var(--ib-escuro);
+    font-size: 12px;
+    line-height: 1.4;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    transform: translateX(8px) scale(0.96);
+    transform-origin: right bottom;
+    pointer-events: none;
+    transition: opacity 220ms ease-out, transform 220ms ease-out;
+  }
+  .ib-balao strong { font-weight: 700; }
+  @media (max-width: 480px) {
+    .ib-balao { width: 80px; min-height: 80px; padding: 10px 10px 10px 13px; font-size: 11px; }
+  }
+
+  #ib-chat[data-estado="icone"] .ib-icone:hover .ib-balao,
+  #ib-chat[data-estado="icone"] .ib-icone:focus-within .ib-balao,
+  #ib-chat[data-estado="icone"] .ib-icone.ib-espiar .ib-balao {
+    opacity: 1;
+    transform: none;
+  }
+
+  .ib-aba {
+    position: fixed;
+    right: 0;
+    bottom: calc(var(--ib-base) + 38px);
+    z-index: 1000001;
+    width: 30px;
+    height: 130px;
+    border-radius: 15px 0 0 15px;
+    background: var(--ib-escuro) !important;
+    color: #fff !important;
+    transform: translateX(100%);
+    visibility: hidden;
+    transition: transform 280ms ease-out, visibility 0s 280ms;
+  }
+  .ib-aba-conteudo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 130px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 14px;
+    line-height: 1;
+    white-space: nowrap;
+    transform: translate(-50%, -50%) rotate(-90deg);
+  }
+  .ib-aba-conteudo svg { width: 16px; height: 16px; flex: none; }
+
+  /* ---------- Estados ---------- */
+  #ib-chat[data-estado="aba"] .ib-icone { opacity: 0; transform: scale(0.6); pointer-events: none; }
+  #ib-chat[data-estado="aba"] .ib-aba { transform: none; visibility: visible; transition: transform 280ms ease-out, visibility 0s; }
+
+  #ib-chat[data-estado="aberto"] .ib-balao,
+  #ib-chat[data-estado="aberto"] .ib-recolher { display: none; }
+  #ib-chat[data-estado="aberto"] .ib-svg-chat { display: none; }
+  #ib-chat[data-estado="aberto"] .ib-fab .ib-svg-fechar { display: block; }
+
+  /* No celular a Blip ocupa a tela toda e tem o próprio botão de fechar */
+  @media (max-width: 480px), (max-height: 420px) {
+    #ib-chat[data-estado="aberto"] { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    #ib-chat *, #ib-chat *::after { transition: none !important; }
+  }
+</style>
+
+<div id="ib-chat" data-estado="icone">
+  <div class="ib-icone">
+    <div class="ib-balao" aria-hidden="true">
+      <span>Fale com nosso <strong>Assistente Virtual :)</strong></span>
+    </div>
+
+    <button type="button" class="ib-fab" aria-label="Abrir o Assistente Virtual Intelbras" aria-expanded="false">
+      <svg class="ib-svg-chat" viewBox="0 0 40 40" aria-hidden="true">
+        <path d="M8.5 9.5h23a2.5 2.5 0 0 1 2.5 2.5v14a2.5 2.5 0 0 1-2.5 2.5H17.5L11 34v-5.5H8.5A2.5 2.5 0 0 1 6 26V12a2.5 2.5 0 0 1 2.5-2.5Z" fill="#163134"/>
+        <circle cx="15.5" cy="19" r="2.4" fill="#06CB3F"/>
+        <circle cx="24.5" cy="19" r="2.4" fill="#06CB3F"/>
+      </svg>
+      <svg class="ib-svg-fechar" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 3l18 18M21 3L3 21" stroke="#163134" stroke-width="2" stroke-linecap="round" fill="none"/>
+      </svg>
+    </button>
+
+    <button type="button" class="ib-recolher" aria-label="Recolher o ícone do chat para a lateral">
+      <svg viewBox="0 0 12 12" aria-hidden="true">
+        <path d="M2 2l8 8M10 2l-8 8" stroke="#fff" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+      </svg>
+    </button>
   </div>
 
-  <!-- LOJA -->
-  <div class="loja">
-    <div class="loja-head"><span class="logo">intelbras</span><span class="rota" id="rota">/</span></div>
-    <div class="nav" id="nav"></div>
-    <div class="conteudo" id="conteudo"></div>
-    <div id="popup">
-      <p>Olá! 👋 Precisa de ajuda para escolher sua fechadura?</p>
-      <button id="btn-popup">Preciso de ajuda</button>
-    </div>
-  </div>
-
-  <!-- PAINEL -->
-  <div class="painel">
-
-    <div class="box">
-      <h3>Estratégia de contexto</h3>
-      <div class="modos" id="modos">
-        <label class="modo" data-modo="rebuild">
-          <input type="radio" name="modo" value="rebuild">
-          <span><b>A1 — destroy / build, chat fechado</b>
-          Sem backend. Reconstrói na troca de rota só com o chat fechado; o contexto vai no <code>withCustomMessageMetadata</code>.</span>
-        </label>
-        <label class="modo" data-modo="rebuild-sempre">
-          <input type="radio" name="modo" value="rebuild-sempre">
-          <span><b>A2 — destroy / build sempre</b>
-          Igual ao A, mas reconstrói também com o chat aberto. Metadata nunca fica velho; a conversa aberta some da tela.</span>
-        </label>
-        <label class="modo" data-modo="pull-rota">
-          <input type="radio" name="modo" value="pull-rota">
-          <span><b>B — pull, POST em toda rota</b>
-          Desenho original. POST a cada mudança de rota de fechadura, independente do chat.</span>
-        </label>
-        <label class="modo sel" data-modo="pull-enter">
-          <input type="radio" name="modo" value="pull-enter" checked>
-          <span><b>C — pull, POST no ENTER_EVENT</b>
-          POST ao abrir o chat, mais POST na troca de rota só se o chat estiver aberto.</span>
-        </label>
-        <label class="modo" data-modo="live">
-          <input type="radio" name="modo" value="live">
-          <span><b>D — metadata ao vivo, sem rebuild</b>
-          Sem backend e sem destroy/build. Na troca de rota, reenvia o <code>CustomMessageMetadata</code> ao iframe por
-          <code>postMessage</code> e atualiza o valor guardado no widget. A conversa aberta continua na tela. Usa API interna (v1.12.0).</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="box destaque">
-      <h3>Teste de tipos — payload do site</h3>
-      <div class="acoes">
-        <button class="ctl" id="t-original">Payload do site (tipos originais)</button>
-        <button class="ctl" id="t-string">Payload do site (tudo string)</button>
-        <button class="ctl" id="t-padrao">Voltar ao payload padrão</button>
-      </div>
-      <div class="acoes" style="margin-top:6px">
-        <button class="ctl" id="t-enviar">Enviar mensagem de teste</button>
-      </div>
-      <div id="t-tabela" style="margin-top:10px"></div>
-      <p class="hint">Cada botão de payload faz destroy/build com aquele metadata fixo, inclusive nas trocas de rota
-        (no modo D, atualiza ao vivo em vez de reconstruir). Depois,
-        digite uma mensagem no chat (é o teste mais fiel) ou use "Enviar mensagem de teste", e confira no Beholder
-        ou no histórico do contato se a mensagem chegou e com quais metadados. Rode primeiro com tipos originais, depois com tudo string, e compare.</p>
-    </div>
-
-    <div class="box">
-      <h3>Estado</h3>
-      <dl class="kv">
-        <dt>ctxKey</dt><dd id="v-ctxkey">—</dd>
-        <dt>loaded</dt><dd id="v-loaded">—</dd>
-        <dt>isChatOpen</dt><dd id="v-aberto">—</dd>
-        <dt>última atividade</dt><dd id="v-atividade">—</dd>
-        <dt>conversaOciosa()</dt><dd id="v-ociosa">—</dd>
-        <dt>pop-up visível</dt><dd id="v-popup">—</dd>
-        <dt>payload ativo</dt><dd id="v-payload">—</dd>
-        <dt>metadata global</dt><dd id="v-meta">—</dd>
-      </dl>
-    </div>
-
-    <div class="box">
-      <h3>Contadores</h3>
-      <dl class="kv">
-        <dt>POSTs</dt><dd id="c-post">0</dd>
-        <dt>rebuilds</dt><dd id="c-rebuild">0</dd>
-        <dt>último rebuild</dt><dd id="c-tempo">—</dd>
-        <dt>updates ao vivo</dt><dd id="c-live">0</dd>
-        <dt>último update</dt><dd id="c-live-dest">—</dd>
-        <dt>iframes no DOM</dt><dd id="c-iframe">0</dd>
-        <dt>scripts no DOM</dt><dd id="c-script">0</dd>
-      </dl>
-      <p class="hint">Iframes acima de 1 indicam vazamento no <code>destroy()</code>.</p>
-    </div>
-
-    <div class="box">
-      <h3>Controles</h3>
-      <div class="acoes">
-        <button class="ctl" id="a-ociosa">Forçar ociosidade</button>
-        <button class="ctl" id="a-ativa">Marcar atividade</button>
-        <button class="ctl" id="a-limpa">Limpar contexto</button>
-        <button class="ctl" id="a-zera">Zerar contadores</button>
-        <button class="ctl" id="a-rebuild">Forçar rebuild</button>
-      </div>
-      <div class="backend" style="margin-top:9px">
-        <input id="url-backend" placeholder="URL do backend real (vazio = mock)" autocomplete="off">
-        <button class="ctl" id="a-backend">Usar</button>
-      </div>
-    </div>
-
-    <div class="box">
-      <h3>Registros (POST /contexto)</h3>
-      <div id="tabela"></div>
-    </div>
-
-    <div class="box">
-      <h3>Teste de corrida</h3>
-      <div class="acoes">
-        <button class="ctl" id="a-marcar">1. Marcar instante da pergunta</button>
-        <button class="ctl" id="a-get">2. Rodar GET</button>
-      </div>
-      <div class="resultado" id="r-at"><span class="rot">com at →</span> —</div>
-      <div class="resultado" id="r-ult"><span class="rot">mais recente →</span> —</div>
-    </div>
-
-    <div class="box"><h3>Log</h3><div id="log"></div></div>
-  </div>
+  <button type="button" class="ib-aba" aria-label="Fale conosco: abrir o Assistente Virtual Intelbras" aria-expanded="false">
+    <span class="ib-aba-conteudo">
+      <svg viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M2.5 2.5h11v8h-6l-3 2.6V10.5h-2z" fill="none" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>
+        <circle cx="6.2" cy="6.5" r="0.9" fill="#fff"/>
+        <circle cx="9.8" cy="6.5" r="0.9" fill="#fff"/>
+      </svg>
+      <span>Fale conosco</span>
+    </span>
+  </button>
 </div>
 
-<script src="https://unpkg.com/blip-chat-widget" type="text/javascript"></script>
+<!-- Versão fixada: o CSS acima depende de IDs internos do widget -->
+<script src="https://unpkg.com/blip-chat-widget@1.13.0" type="text/javascript"></script>
 <script>
 (function () {
-  'use strict';
-
-  var APP_KEY    = 'ZWNvbW1lcmNlaW50ZWxicmFzaG9tb2xvZzowMDNlYzg0ZC0yYmJiLTQxZTctODE1OS02ZDg3MWI4ZTQzOGU=';
-  var COMMON_URL = 'https://intelbras.chat.blip.ai/';
-  var ICON       = 'https://blipmediastore.blob.core.windows.net/public-medias/Media_2d943d15-98a5-4ebd-924b-b32641c20812';
-
-  var K_CTX = 'intelbras.ctxKey', K_ATIV = 'intelbras.ultimaAtividadeChat';
-  var JANELA = 60*60*1000, CTX_TTL = 30*60*1000, MAX_REG = 10, TOL = 2000;
-
-  // Payload exatamente como o site está enviando (copiado do console dele), com os tipos originais:
-  // ctxCategories é array e ctxPreco é número.
-  var CTX_SITE = {
-    origem:        'webchat-loja',
-    ctxTipoPagina: 'store.product',
-    ctxUrl:        'https://chatcomcontext--intelbras.myvtex.com/fechadura-inteligente-de-embutir-mfv3000-intelbras/p',
-    ctxPath:       '/fechadura-inteligente-de-embutir-mfv3000-intelbras/p',
-    ctxProduto:    'Fechadura Inteligente de Embutir com Biometria MFV 3000',
-    ctxCategories: ['/Controle de Acesso/Fechaduras digitais/', '/Controle de Acesso/'],
-    ctxPreco:      799.9,
-    ctxSkuId:      '4670040'
+  var CONFIG = {
+    appKey: 'ZWNvbW1lcmNlaW50ZWxicmFzaG9tb2xvZzowMDNlYzg0ZC0yYmJiLTQxZTctODE1OS02ZDg3MWI4ZTQzOGU=',
+    commonUrl: 'https://intelbras.chat.blip.ai/',
+    chaveRecolhido: 'ibChatRecolhido',
+    // No celular não existe hover: mostra o balão uma vez, por alguns segundos
+    balaoAutomaticoMs: 5000
   };
 
-  var CATALOGO = {
-    '4670040': { nome:'Fechadura Inteligente de Embutir com Biometria MFV 3000', preco:'799.90', precoDe:'1285.34', fechadura:true },
-    '4670102': { nome:'Fechadura Digital de Sobrepor FR 102',                    preco:'206.91', precoDe:'401.60',  fechadura:true },
-    '4670220': { nome:'Fechadura Digital de Sobrepor FR 220',                    preco:'449.90', precoDe:'699.00',  fechadura:true },
-    '4550120': { nome:'Câmera Full HD VHD 1220 B',                               preco:'259.90', precoDe:'349.90',  fechadura:false }
-  };
-  var ROTAS = [
-    { id:'home',    label:'Home',       tipo:'fora-categoria' },
-    { id:'plp',     label:'Fechaduras', tipo:'plp' },
-    { id:'4670040', label:'MFV 3000',   tipo:'pdp' },
-    { id:'4670102', label:'FR 102',     tipo:'pdp' },
-    { id:'4670220', label:'FR 220',     tipo:'pdp' },
-    { id:'4550120', label:'Câmera',     tipo:'pdp' }
-  ];
+  /* CSS aplicado DENTRO do chat (iframe da Blip).
+     Seletores marcados com [oficial] vêm do exemplo da própria Blip.
+     Os marcados com [validar] vêm da biblioteca blip-cards e precisam
+     ser conferidos no DevTools, inspecionando o iframe. */
+  var estiloInterno = [
+    ':root { --color-primary: #06CB3F; }',
 
-  var logEl = document.getElementById('log');
-  function log(m, t) {
-    var g = t==='warn'?'i':t==='err'?'s':'b';
-    var d = document.createElement('div');
-    d.innerHTML = new Date().toISOString().substr(11,12)+'  <'+g+'>'+m+'</'+g+'>';
-    logEl.appendChild(d); logEl.scrollTop = logEl.scrollHeight;
+    /* [oficial] fundo geral */
+    'body, #app { background: #F5F5F5 !important; }',
+
+    /* [oficial] header verde. O texto vem do nome do bot no portal. */
+    '#blip-chat-header { background: #06CB3F !important; color: #163134 !important; }',
+    '#blip-chat-header * { color: #163134 !important; }',
+
+    /* [validar] balões: bot à esquerda (cinza), usuário à direita (branco) */
+    '.blip-card .bubble.left { background: #E4E4E4 !important; color: #000 !important; border-radius: 20px !important; font-size: 14px !important; line-height: 1.2 !important; }',
+    '.blip-card .bubble.right { background: #FFFFFF !important; color: #000 !important; border-radius: 20px !important; font-size: 14px !important; line-height: 1.2 !important; }',
+
+    /* [validar] horário das mensagens */
+    '.blip-card .notification { color: #818181 !important; font-size: 12px !important; }',
+
+    /* [validar] respostas rápidas em pílula verde */
+    '.quick-reply-buttons > div > span { background: #06CB3F !important; color: #000 !important; border: 0 !important; border-radius: 40px !important; height: 40px !important; font-size: 14px !important; font-weight: 500 !important; }',
+    '.disabled-options { opacity: 1 !important; }',
+    '.disabled-options .quick-reply-buttons > div > span { background: #E4E4E4 !important; color: #B9B5B4 !important; }',
+
+    /* [oficial] área de digitação */
+    '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; }',
+    '#message-input textarea { background: #FFFFFF !important; color: #000 !important; font-size: 16px !important; }',
+    '#message-input textarea::placeholder { color: #B9B5B4 !important; }'
+
+    /* Para remover o "Powered by Blip", se for o caso:
+       , '.blip-chat-powered .self-end .ma3 { display: none; }' */
+  ].join('\n');
+
+  var raiz = document.getElementById('ib-chat');
+  var icone = raiz.querySelector('.ib-icone');
+  var fab = raiz.querySelector('.ib-fab');
+  var recolher = raiz.querySelector('.ib-recolher');
+  var aba = raiz.querySelector('.ib-aba');
+
+  var blip = null;
+  var travado = false;
+  var estado = lerRecolhido() ? 'aba' : 'icone';
+  var estadoAoFechar = estado;
+
+  function lerRecolhido() {
+    try { return sessionStorage.getItem(CONFIG.chaveRecolhido) === '1'; } catch (e) { return false; }
   }
-
-  function getCtxKey() {
-    var k = localStorage.getItem(K_CTX);
-    if (!k) { k = crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random().toString(16).slice(2);
-              localStorage.setItem(K_CTX, k); }
-    return k;
-  }
-  function marcarAtividade() { localStorage.setItem(K_ATIV, String(Date.now())); }
-  function conversaOciosa() {
-    var t = localStorage.getItem(K_ATIV);
-    return !t || (Date.now() - Number(t)) > JANELA;
-  }
-
-  // ---------------- teste de tipos ----------------
-  // null = payload padrão da simulação; 'original' = CTX_SITE como está; 'string' = CTX_SITE com tudo convertido
-  var payloadTeste = null;
-
-  function tudoString(obj) {
-    var r = {};
-    Object.keys(obj).forEach(function (k) {
-      var v = obj[k];
-      if (v === undefined || v === null) return;
-      r[k] = typeof v === 'string' ? v : JSON.stringify(v);
-    });
-    return r;
-  }
-  function payloadDoTeste() {
-    if (payloadTeste === 'original') return JSON.parse(JSON.stringify(CTX_SITE));
-    if (payloadTeste === 'string')   return tudoString(CTX_SITE);
-    return null;
-  }
-  function tipoDe(v) { return Array.isArray(v) ? 'array' : typeof v; }
-  function mostrarValor(v) { return typeof v === 'string' ? v : JSON.stringify(v); }
-
-  function pintarPayloadTeste() {
-    var el = document.getElementById('t-tabela');
-    var p = payloadDoTeste();
-    ['t-original','t-string','t-padrao'].forEach(function (id) {
-      document.getElementById(id).classList.remove('ativo');
-    });
-    document.getElementById(payloadTeste==='original'?'t-original':payloadTeste==='string'?'t-string':'t-padrao')
-      .classList.add('ativo');
-    if (!p) { el.innerHTML = '<p class="vazio">Usando o payload padrão da simulação.</p>'; return; }
-    var h = '<table><tr><th>chave</th><th>tipo</th><th>valor</th></tr>';
-    Object.keys(p).forEach(function (k) {
-      var t = tipoDe(p[k]);
-      h += '<tr><td>'+k+'</td><td class="'+(t==='string'?'sim':'nao')+'">'+t+'</td><td>'+mostrarValor(p[k])+'</td></tr>';
-    });
-    el.innerHTML = h+'</table>';
-  }
-
-  // ---------------- backend mock ----------------
-  var urlBackend = '', store = {}, ultimoSku = undefined;
-  var nPost = 0, nRebuild = 0, tRebuild = '—';
-
-  function resolver(sku) {
-    var p = CATALOGO[sku];
-    return p ? { skuId:sku, nome:p.nome, preco:p.preco, precoDe:p.precoDe, disponivel:true } : {};
-  }
-  function mockPost(b) {
-    var l = store[b.ctxKey] || (store[b.ctxKey] = []);
-    var r = Object.assign({ tipoPagina:b.tipoPagina, capturadoEm:String(Date.now()) },
-                          b.skuId ? resolver(b.skuId) : {});
-    l.push(r); if (l.length > MAX_REG) l.shift();
-    return r;
-  }
-  function mockGet(ctxKey, at) {
-    var agora = Date.now();
-    var l = (store[ctxKey]||[]).filter(function(r){ return agora - Number(r.capturadoEm) < CTX_TTL; });
-    if (!l.length) return null;
-    if (at == null) return l[l.length-1];
-    for (var i=l.length-1; i>=0; i--) if (Number(l[i].capturadoEm) <= at + TOL) return l[i];
-    return null;
-  }
-
-  function ehModoRebuild() { return modo === 'rebuild' || modo === 'rebuild-sempre'; }
-  function ehModoLive()    { return modo === 'live'; }
-  function contextoNoMetadata() { return ehModoRebuild() || ehModoLive(); }   // modos A e D: contexto vai no metadata
-
-  function postContexto(sku, tipo, motivo) {
-    if (contextoNoMetadata()) return;                     // modos A e D não usam backend
-    var chave = (sku||'') + '|' + tipo;
-    if (chave === ultimoSku) { log('POST deduplicado ('+motivo+')','warn'); return; }
-    ultimoSku = chave;
-    nPost++;
-    var body = { ctxKey:getCtxKey(), skuId:sku||null, tipoPagina:tipo };
-    if (urlBackend) {
-      fetch(urlBackend.replace(/\/$/,'')+'/contexto', { method:'POST',
-        headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
-        .then(function(){ log('POST → backend real ('+motivo+')'); })
-        .catch(function(e){ log('POST falhou: '+e.message,'err'); });
-    } else {
-      var r = mockPost(body);
-      log('POST ('+motivo+') → '+(r.nome||r.tipoPagina));
-    }
-    pintarTabela();
-  }
-  function getContexto(at, cb) {
-    if (urlBackend) {
-      fetch(urlBackend.replace(/\/$/,'')+'/contexto/'+getCtxKey()+(at?'?at='+at:''))
-        .then(function(r){ return r.ok ? r.json() : null; }).then(cb)
-        .catch(function(e){ log('GET falhou: '+e.message,'err'); cb(null); });
-    } else cb(mockGet(getCtxKey(), at));
-  }
-
-  // ---------------- widget ----------------
-  var client = null, loaded = false, cameFromCTA = false, isChatOpen = false;
-  var metaGlobal = {};
-
-  function contextoDaRota() {
-    var r = ROTAS.filter(function(x){ return x.id===rotaAtual; })[0];
-    var ehF = ehFechadura(rotaAtual);
-    return { sku: (ehF && r.tipo==='pdp') ? rotaAtual : null,
-             tipo: ehF ? r.tipo : 'fora-categoria' };
-  }
-
-  // Metadata completo para a rota atual (ou o payload de teste, se ativo).
-  // Sempre o objeto inteiro: um novo CustomMessageMetadata substitui o anterior, não se soma a ele.
-  function metadataAtual() {
-    var t = payloadDoTeste();
-    if (t) return t;
-    var m = { ctxKey:getCtxKey(), origem:'webchat-loja' };
-    if (contextoNoMetadata()) {
-      var c = contextoDaRota();
-      m.ctxTipoPagina = c.tipo;
-      if (c.sku) { m.ctxSkuId = c.sku; m.ctxProduto = CATALOGO[c.sku].nome; m.ctxPreco = CATALOGO[c.sku].preco; }
-    }
-    return m;
-  }
-
-  // Modo D: troca o metadata sem destroy/build.
-  // 1) client.widget.customMessageMetadata: o wrapper reenvia esse valor sempre que o iframe fica pronto
-  //    (iframe criado depois, ou recarregado). Sem isso, um iframe novo receberia o valor antigo do build.
-  // 2) postMessage CustomMessageMetadata: atualiza o iframe que já existe.
-  var nLive = 0, destLive = '—';
-  function atualizarAoVivo(motivo) {
-    var m = metadataAtual();
-    metaGlobal = m;
-    if (!client || !client.widget) { log('update ao vivo: client.widget indisponível — API interna mudou?','err'); return; }
-    client.widget.customMessageMetadata = m;
-    var f = document.getElementById('blip-chat-iframe');
-    if (f && f.contentWindow) {   // posta mesmo antes do LOAD_EVENT: se o iframe ainda não escuta, o wrapper reenvia o valor guardado quando ele ficar pronto
-      f.contentWindow.postMessage({ code:'CustomMessageMetadata', customMessageMetadata:m }, new URL(f.src).origin);
-      destLive = 'widget + iframe';
-    } else {
-      destLive = 'só widget (iframe ainda não criado)';
-    }
-    nLive++;
-    console.log('[simulação] metadata ao vivo ('+motivo+'):', m);
-    log('update ao vivo ('+motivo+') → '+destLive);
-  }
-
-  function montarWidget() {
-    var m = metadataAtual();
-    if (payloadTeste) log('build com payload do site ('+(payloadTeste==='original'?'tipos originais':'tudo string')+')','warn');
-    metaGlobal = m;
-    console.log('[simulação] withCustomMessageMetadata:', m);
-
-    client = new BlipChat();
-    client.withAppKey(APP_KEY)
-      .withButton({ color:'#00a75d', icon:ICON })
-      .withCustomCommonUrl(COMMON_URL)
-      .withCustomMessageMetadata(m)
-      .withEventHandler(BlipChat.LOAD_EVENT, function () {
-        loaded = true; marcarAtividade(); log('LOAD_EVENT');
-        if (!cameFromCTA) return;
-        cameFromCTA = false; enviarMensagemAgente();
-      })
-      .withEventHandler(BlipChat.ENTER_EVENT, function () {
-        isChatOpen = true; marcarAtividade(); log('ENTER_EVENT');
-        if (modo === 'pull-enter') { var c = contextoDaRota(); postContexto(c.sku, c.tipo, 'ENTER_EVENT'); }
-        pintar();
-      })
-      .withEventHandler(BlipChat.LEAVE_EVENT, function () {
-        isChatOpen = false; marcarAtividade(); log('LEAVE_EVENT'); pintar();
-      })
-      .withEventHandler(BlipChat.CREATE_ACCOUNT_EVENT, function () { log('CREATE_ACCOUNT_EVENT'); })
-      .build();
-  }
-
-  function rebuildar(motivo) {
-    var t0 = performance.now();
-    try { client.destroy(); } catch (e) { log('destroy() falhou: '+e.message,'err'); }
-    loaded = false; isChatOpen = false;
-    montarWidget();
-    nRebuild++; tRebuild = Math.round(performance.now()-t0)+'ms';
-    log('rebuild ('+motivo+') em '+tRebuild,'warn');
-  }
-
-  function enviarMensagemAgente() {
-    client.sendMessage({
-      type:'text/plain',
-      content:'Quero uma recomendação de fechadura',
-      metadata:{ intent:'recomendacao-fechaduras', ctxKey:getCtxKey() }
-    });
-    log('mensagem injetada (intent: recomendacao-fechaduras)');
-  }
-
-  function dispararAgente() {
-    if (conversaOciosa()) {
-      if (loaded) enviarMensagemAgente();
-      else { cameFromCTA = true; log('cameFromCTA levantada — aguardando LOAD_EVENT','warn'); }
-    } else log('conversa recente — abre sem injetar','warn');
-    client.toogleChat();
-  }
-
-  // ---------------- SPA ----------------
-  var rotaAtual = 'home', modo = 'pull-enter';
-
-  function ehFechadura(r) {
-    if (r === 'plp') return true;
-    var p = CATALOGO[r]; return !!(p && p.fechadura);
-  }
-
-  function navegar(id) {
-    rotaAtual = id; render();
-    var c = contextoDaRota();
-    if (modo === 'pull-rota') {
-      if (ehFechadura(id)) postContexto(c.sku, c.tipo, 'rota');
-      else postContexto(null, 'fora-categoria', 'rota');
-    } else if (modo === 'pull-enter') {
-      if (isChatOpen) postContexto(c.sku, c.tipo, 'rota c/ chat aberto');
-    } else if (modo === 'rebuild') {
-      if (!isChatOpen) rebuildar('troca de rota');
-      else log('chat aberto — rebuild adiado (metadata fica velho)','warn');
-    } else if (modo === 'rebuild-sempre') {
-      if (isChatOpen) log('chat aberto — rebuild vai fechá-lo','warn');
-      rebuildar('troca de rota');
-    } else if (modo === 'live') {
-      atualizarAoVivo('troca de rota');
-    }
-    pintar();
+  function salvarRecolhido() {
+    try { sessionStorage.setItem(CONFIG.chaveRecolhido, '1'); } catch (e) { /* sem storage, segue */ }
   }
 
   function render() {
-    document.getElementById('rota').textContent =
-      rotaAtual==='home' ? '/' : rotaAtual==='plp' ? '/controle-de-acesso/fechaduras-digitais' : '/p/'+rotaAtual;
-    var nav = document.getElementById('nav'); nav.innerHTML = '';
-    ROTAS.forEach(function (r) {
-      var b = document.createElement('button'); b.textContent = r.label;
-      if (r.id===rotaAtual) b.setAttribute('aria-current','page');
-      b.onclick = function(){ navegar(r.id); }; nav.appendChild(b);
-    });
-    var c = document.getElementById('conteudo');
-    if (rotaAtual==='home') {
-      c.innerHTML = '<p style="font-size:13.5px;color:#63707d">Fora da categoria de fechaduras. Sem pop-up; contexto marcado como <code>fora-categoria</code>.</p>';
-    } else if (rotaAtual==='plp') {
-      var h = '<div class="grid">';
-      ['4670040','4670102','4670220'].forEach(function (s) {
-        var p = CATALOGO[s];
-        h += '<div class="card" data-sku="'+s+'"><div class="nome">'+p.nome+'</div><div class="preco">R$ '+
-             p.preco.replace('.',',')+'</div><div class="sku">SKU '+s+'</div></div>';
-      });
-      c.innerHTML = h+'</div>';
-      Array.prototype.forEach.call(c.querySelectorAll('.card'), function (el) {
-        el.onclick = function(){ navegar(el.dataset.sku); };
-      });
-    } else {
-      var p2 = CATALOGO[rotaAtual];
-      c.innerHTML = '<div class="pdp"><h2>'+p2.nome+'</h2><div class="sku">Código do Produto: '+rotaAtual+
-        '</div><div class="de">De: R$ '+p2.precoDe.replace('.',',')+'</div><div class="preco">R$ '+
-        p2.preco.replace('.',',')+'</div>'+
-        (p2.fechadura?'':'<div class="mock">Fora da categoria — sem pop-up.</div>')+
-        '<div class="mock">Dados mockados. No real, resolvidos server-side na API de catálogo da VTEX.</div></div>';
-    }
+    raiz.setAttribute('data-estado', estado);
+    var aberto = estado === 'aberto';
+    fab.setAttribute('aria-label', aberto ? 'Fechar o chat' : 'Abrir o Assistente Virtual Intelbras');
+    fab.setAttribute('aria-expanded', String(aberto));
+    aba.setAttribute('aria-expanded', String(aberto));
   }
 
-  function popupVisivel() { return ehFechadura(rotaAtual) && conversaOciosa(); }
-
-  function pintar() {
-    document.getElementById('v-ctxkey').textContent = getCtxKey();
-    document.getElementById('v-loaded').innerHTML = loaded?'<span class="sim">true</span>':'<span class="neutro">false</span>';
-    document.getElementById('v-aberto').innerHTML = isChatOpen?'<span class="sim">true</span>':'<span class="neutro">false</span>';
-    var t = localStorage.getItem(K_ATIV);
-    document.getElementById('v-atividade').textContent = t ? Math.round((Date.now()-Number(t))/1000)+'s atrás' : 'nunca';
-    var oc = conversaOciosa();
-    document.getElementById('v-ociosa').innerHTML = oc?'<span class="sim">true → injeta</span>':'<span class="nao">false → não injeta</span>';
-    var pv = popupVisivel();
-    document.getElementById('v-popup').innerHTML = pv?'<span class="sim">sim</span>':'<span class="neutro">não</span>';
-    document.getElementById('popup').classList.toggle('on', pv);
-    document.getElementById('v-payload').innerHTML =
-      payloadTeste==='original' ? '<span class="nao">site — tipos originais</span>' :
-      payloadTeste==='string'   ? '<span class="sim">site — tudo string</span>' : 'padrão';
-    document.getElementById('v-meta').textContent =
-      Object.keys(metaGlobal).map(function(k){ return k+'='+(k==='ctxKey'?'…':mostrarValor(metaGlobal[k])); }).join('  ');
-
-    document.getElementById('c-post').textContent = nPost;
-    document.getElementById('c-rebuild').textContent = nRebuild;
-    document.getElementById('c-tempo').textContent = tRebuild;
-    document.getElementById('c-live').textContent = nLive;
-    document.getElementById('c-live-dest').textContent = destLive;
-    var ifr = document.querySelectorAll('iframe[src*="blip"]').length;
-    document.getElementById('c-iframe').innerHTML = ifr>1 ? '<span class="nao">'+ifr+'</span>' : String(ifr);
-    document.getElementById('c-script').textContent = document.querySelectorAll('script[src*="blip-chat-widget"]').length;
+  // Evita duplo clique enquanto a Blip anima a abertura
+  function alternarChat() {
+    if (!blip || travado) return;
+    travado = true;
+    setTimeout(function () { travado = false; }, 600);
+    blip.toogleChat();
   }
 
-  function pintarTabela() {
-    var l = store[getCtxKey()]||[], el = document.getElementById('tabela');
-    if (!l.length) { el.innerHTML = '<p class="vazio">Nenhum registro.</p>'; return; }
-    var h = '<table><tr><th>capturadoEm</th><th>tipo</th><th>produto</th></tr>';
-    l.slice().reverse().forEach(function (r,i) {
-      h += '<tr'+(i===0?' class="novo"':'')+'><td>'+r.capturadoEm+'</td><td>'+r.tipoPagina+'</td><td>'+(r.nome||'—')+'</td></tr>';
-    });
-    el.innerHTML = h+'</table>';
+  function abrir(origem) {
+    if (estado === 'aberto') return;
+    estadoAoFechar = origem;
+    estado = 'aberto';
+    render();
+    alternarChat();
   }
 
-  // ---------------- controles ----------------
-  document.getElementById('btn-popup').onclick = dispararAgente;
-  document.getElementById('modos').addEventListener('change', function (e) {
-    modo = e.target.value; ultimoSku = undefined;
-    Array.prototype.forEach.call(document.querySelectorAll('.modo'), function (el) {
-      el.classList.toggle('sel', el.dataset.modo === modo);
-    });
-    log('modo: '+modo,'warn');
-    rebuildar('troca de modo');
-    pintar();
+  fab.addEventListener('click', function () {
+    if (estado === 'aberto') { alternarChat(); return; }
+    abrir('icone');
   });
-  document.getElementById('a-ociosa').onclick = function(){ localStorage.setItem(K_ATIV,String(Date.now()-JANELA-60000)); log('ociosidade forçada','warn'); pintar(); };
-  document.getElementById('a-ativa').onclick  = function(){ marcarAtividade(); log('atividade marcada','warn'); pintar(); };
-  document.getElementById('a-limpa').onclick  = function(){ store={}; ultimoSku=undefined; pintarTabela(); log('contexto limpo','warn'); };
-  document.getElementById('a-zera').onclick   = function(){ nPost=0; nRebuild=0; tRebuild='—'; nLive=0; destLive='—'; pintar(); };
-  document.getElementById('a-rebuild').onclick= function(){ rebuildar('manual'); pintar(); };
-  document.getElementById('a-backend').onclick= function(){
-    urlBackend = document.getElementById('url-backend').value.trim();
-    log(urlBackend?('backend real: '+urlBackend):'voltou ao mock','warn');
-  };
 
-  // teste de tipos
-  function trocarPayload(novo, rotulo) {
-    payloadTeste = novo;
-    pintarPayloadTeste();
-    if (ehModoLive()) atualizarAoVivo('payload: '+rotulo);
-    else rebuildar('payload: '+rotulo);
-    pintar();
+  aba.addEventListener('click', function () { abrir('aba'); });
+
+  recolher.addEventListener('click', function () {
+    estado = 'aba';
+    estadoAoFechar = 'aba';
+    salvarRecolhido();
+    render();
+    aba.focus();
+  });
+
+  // Celular/touch: mostra o balão uma vez
+  if (CONFIG.balaoAutomaticoMs && window.matchMedia('(hover: none)').matches && estado === 'icone') {
+    setTimeout(function () {
+      icone.classList.add('ib-espiar');
+      setTimeout(function () { icone.classList.remove('ib-espiar'); }, CONFIG.balaoAutomaticoMs);
+    }, 1500);
   }
-  document.getElementById('t-original').onclick = function(){ trocarPayload('original', 'site, tipos originais'); };
-  document.getElementById('t-string').onclick   = function(){ trocarPayload('string',   'site, tudo string'); };
-  document.getElementById('t-padrao').onclick   = function(){ trocarPayload(null,       'padrão'); };
-  document.getElementById('t-enviar').onclick   = function(){
-    if (!loaded) { log('chat ainda não carregou — espere o LOAD_EVENT','err'); return; }
-    var rotulo = payloadTeste==='original' ? 'tipos originais' : payloadTeste==='string' ? 'tudo string' : 'padrão';
-    // Sem metadata próprio na mensagem, para que só o withCustomMessageMetadata entre em jogo.
-    client.sendMessage({ type:'text/plain', content:'Teste de metadata ('+rotulo+') '+new Date().toLocaleTimeString('pt-BR') });
-    if (!isChatOpen) client.toogleChat();
-    log('mensagem de teste enviada ('+rotulo+')');
-  };
 
-  var atMarcado = null;
-  document.getElementById('a-marcar').onclick = function(){
-    atMarcado = Date.now(); log('at marcado: '+atMarcado,'warn');
-  };
-  document.getElementById('a-get').onclick = function(){
-    if (!atMarcado) { log('marque o instante primeiro','err'); return; }
-    getContexto(atMarcado, function (c) {
-      document.getElementById('r-at').innerHTML = '<span class="rot">com at →</span> '+(c?(c.nome||c.tipoPagina):'404');
-    });
-    getContexto(null, function (u) {
-      document.getElementById('r-ult').innerHTML = '<span class="rot">mais recente →</span> '+(u?(u.nome||u.tipoPagina):'404');
-    });
-  };
+  render();
 
-  window.onload = function () {
-    montarWidget(); render(); pintar(); pintarTabela(); pintarPayloadTeste();
-    setInterval(pintar, 1000);
-    log('simulação pronta — modo pull-enter');
-  };
+  window.addEventListener('load', function () {
+    if (typeof BlipChat === 'undefined') {
+      console.error('[ib-chat] O script do Blip Chat não carregou.');
+      return;
+    }
+    blip = new BlipChat()
+      .withAppKey(CONFIG.appKey)
+      .withButton({ color: '#06CB3F' })
+      .withCustomCommonUrl(CONFIG.commonUrl)
+      .withCustomStyle(estiloInterno)
+      // Mantém o launcher sincronizado mesmo quando o chat é fechado por dentro
+      // (ex.: botão de fechar da própria Blip no celular)
+      .withEventHandler(BlipChat.ENTER_EVENT, function () {
+        if (estado !== 'aberto') { estadoAoFechar = estado; estado = 'aberto'; render(); }
+      })
+      .withEventHandler(BlipChat.LEAVE_EVENT, function () {
+        estado = estadoAoFechar;
+        render();
+      });
+    blip.build();
+  });
 })();
 </script>
+
+<!-- =====================================================================
+     ... ATÉ AQUI
+     ===================================================================== -->
+
 </body>
 </html>
