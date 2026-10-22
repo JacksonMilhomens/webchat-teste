@@ -246,35 +246,60 @@
   };
 
   /* CSS aplicado DENTRO do chat (iframe da Blip).
-     Seletores marcados com [oficial] vêm do exemplo da própria Blip.
-     Os marcados com [validar] vêm da biblioteca blip-cards e precisam
-     ser conferidos no DevTools, inspecionando o iframe. */
+     O prefixo #app aumenta a especificidade para vencer o CSS padrão da Blip.
+     [oficial] = seletor do exemplo da própria Blip
+     [cards]   = seletor confirmado no código da biblioteca blip-cards
+     [validar] = estrutura interna não documentada; conferir no DevTools */
   var estiloInterno = [
-    ':root { --color-primary: #06CB3F; }',
+    /* Fonte da marca: descomente e aponte para onde vocês hospedam a Intelbras Sans
+       (o servidor precisa liberar CORS para *.chat.blip.ai)
+    "@font-face { font-family: 'Intelbras Sans'; src: url('https://SEU-CDN/IntelbrasSans-Regular.woff2') format('woff2'); font-weight: 400; }",
+    "@font-face { font-family: 'Intelbras Sans'; src: url('https://SEU-CDN/IntelbrasSans-Medium.woff2') format('woff2'); font-weight: 500; }",
+    "@font-face { font-family: 'Intelbras Sans'; src: url('https://SEU-CDN/IntelbrasSans-Bold.woff2') format('woff2'); font-weight: 700; }",
+    */
+    ":root { --color-primary: #06CB3F; }",
+    "body, #app { background: #F5F5F5 !important; font-family: 'Intelbras Sans', Arial, sans-serif !important; }",
 
-    /* [oficial] fundo geral */
-    'body, #app { background: #F5F5F5 !important; }',
+    /* [oficial] Header: 90px, verde, texto escuro. Nome e foto vêm do portal. */
+    '#blip-chat-header { background: #06CB3F !important; min-height: 90px !important; box-sizing: border-box !important; padding-left: 30px !important; padding-right: 30px !important; display: flex !important; align-items: center !important; box-shadow: none !important; }',
+    '#blip-chat-header, #blip-chat-header * { color: #163134 !important; }',
+    /* [validar] foto do bot no header: 55px */
+    '#blip-chat-header img { width: 55px !important; height: 55px !important; border-radius: 50% !important; background: #fff !important; }',
 
-    /* [oficial] header verde. O texto vem do nome do bot no portal. */
-    '#blip-chat-header { background: #06CB3F !important; color: #163134 !important; }',
-    '#blip-chat-header * { color: #163134 !important; }',
+    /* [cards] Remove o avatar ao lado das mensagens e o recuo que ele cria */
+    '#app .blip-card-photo { display: none !important; }',
+    '#app .blip-container--with-photo.left { margin-left: 0 !important; }',
+    '#app .blip-container--with-photo.right { margin-right: 0 !important; }',
 
-    /* [validar] balões: bot à esquerda (cinza), usuário à direita (branco) */
-    '.blip-card .bubble.left { background: #E4E4E4 !important; color: #000 !important; border-radius: 20px !important; font-size: 14px !important; line-height: 1.2 !important; }',
-    '.blip-card .bubble.right { background: #FFFFFF !important; color: #000 !important; border-radius: 20px !important; font-size: 14px !important; line-height: 1.2 !important; }',
+    /* [cards] Balões: sem borda, raio 20px, texto preto 14px */
+    '#app .bubble.left, #app .bubble.right { border: 0 !important; box-shadow: none !important; border-radius: 20px !important; font-size: 14px !important; line-height: 1.2 !important; padding: 16px 22px !important; }',
+    '#app .bubble.left { background: #E4E4E4 !important; }',
+    '#app .bubble.right { background: #FFFFFF !important; }',
+    '#app .bubble.left, #app .bubble.left *, #app .bubble.right, #app .bubble.right * { color: #000 !important; }',
+    '#app .bubble a { color: #000 !important; text-decoration: underline !important; }',
 
-    /* [validar] horário das mensagens */
-    '.blip-card .notification { color: #818181 !important; font-size: 12px !important; }',
+    /* [cards] Horário */
+    '#app .blip-card .notification, #app .blip-card .notification * { color: #818181 !important; font-size: 12px !important; }',
 
-    /* [validar] respostas rápidas em pílula verde */
-    '.quick-reply-buttons > div > span { background: #06CB3F !important; color: #000 !important; border: 0 !important; border-radius: 40px !important; height: 40px !important; font-size: 14px !important; font-weight: 500 !important; }',
-    '.disabled-options { opacity: 1 !important; }',
-    '.disabled-options .quick-reply-buttons > div > span { background: #E4E4E4 !important; color: #B9B5B4 !important; }',
+    /* [cards] Respostas rápidas (Aceito / Não aceito) */
+    '#app .select .options ul { padding-left: 0 !important; }',
+    '#app .select .options li { background: #06CB3F !important; border: 0 !important; border-radius: 40px !important; height: 40px !important; padding: 0 26px !important; margin-right: 11px !important; opacity: 1 !important; box-shadow: none !important; }',
+    '#app .select .options li, #app .select .options li * { color: #000 !important; font-size: 14px !important; font-weight: 500 !important; }',
+    /* Depois da escolha, todas ficam cinza (como no Figma) */
+    '#app .select .options li.pointer-default, #app .select .options li.unselected-option { background: #E4E4E4 !important; opacity: 1 !important; }',
+    '#app .select .options li.pointer-default, #app .select .options li.pointer-default *, #app .select .options li.unselected-option * { color: #B9B5B4 !important; }',
 
-    /* [oficial] área de digitação */
+    /* [oficial] Área de digitação */
     '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; }',
     '#message-input textarea { background: #FFFFFF !important; color: #000 !important; font-size: 16px !important; }',
-    '#message-input textarea::placeholder { color: #B9B5B4 !important; }'
+    '#message-input textarea::placeholder { color: #B9B5B4 !important; }',
+    /* [validar] O Figma só tem anexo e microfone. Para esconder a câmera, descubra
+       a posição dela no DevTools e descomente/ajuste:
+    '#message-input .message-options > :nth-child(2) { display: none !important; }', */
+
+    /* Barra de rolagem fina */
+    '* { scrollbar-width: thin; scrollbar-color: #CFCFCF transparent; }',
+    '::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-thumb { background: #CFCFCF; border-radius: 3px; } ::-webkit-scrollbar-track { background: transparent; }'
 
     /* Para remover o "Powered by Blip", se for o caso:
        , '.blip-chat-powered .self-end .ma3 { display: none; }' */
