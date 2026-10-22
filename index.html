@@ -305,11 +305,11 @@
        fim da lista de mensagens (o elemento que contém 2+ grupos de mensagem),
        para a última mensagem e o horário não ficarem escondidos atrás dela. */
     '#app :has(> .blip-message-group + .blip-message-group) { padding-bottom: 16px !important; }',
-    /* [validar] Botão de enviar: a Blip escurece sozinha a cor dos componentes nesse
-       botão. Ele só aparece quando há texto digitado e, nesse momento, é o último
-       botão da barra. No Figma: círculo verde do topo com a seta escura. */
-    '#message-input:has(textarea:not(:placeholder-shown)) button:last-of-type { background: #06CB3F !important; border-color: #06CB3F !important; }',
-    '#message-input:has(textarea:not(:placeholder-shown)) button:last-of-type svg, #message-input:has(textarea:not(:placeholder-shown)) button:last-of-type svg * { fill: #163134 !important; color: #163134 !important; }',
+    /* Botão de enviar (#blip-send-message). Fica FORA do #message-input e recebe a cor
+       inline (style="background-color: rgb(0, 167, 93)"), por isso o !important.
+       No Figma: verde do topo com a seta escura. O ícone usa currentColor. */
+    '#blip-send-message { background-color: #06CB3F !important; }',
+    '#blip-send-message .send-icon { color: #163134 !important; }',
     '#message-input textarea { background: #FFFFFF !important; color: #000 !important; font-size: 16px !important; }',
     '#message-input textarea::placeholder { color: #B9B5B4 !important; }',
     /* [validar] O Figma só tem anexo e microfone. Para esconder a câmera, descubra
