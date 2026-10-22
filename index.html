@@ -253,8 +253,14 @@
     ":root { --color-primary: #06CB3F; }",
     "body, #app { background: #F5F5F5 !important; font-family: 'Intelbras Sans', Arial, sans-serif !important; }",
 
-    /* [oficial] Header: tamanho padrão da Blip, só cores. Nome e foto vêm do portal. */
-    '#blip-chat-header { background: #06CB3F !important; box-shadow: none !important; }',
+    /* ALTURAS: o padrão da Blip é ~52px no header e ~63px na barra de digitação.
+       Para engordar ou afinar, mude os dois números abaixo (e o espaço extra
+       do rodapé, que deve ser a diferença entre a barra nova e a original). */
+
+    /* [oficial] Header: 68px. Como ele fica sobreposto ao conteúdo, a área da
+       conversa desce na mesma medida (padding-top) e ocupa 100% da altura. */
+    '#app { padding-top: 68px !important; height: 100% !important; box-sizing: border-box !important; }',
+    '#blip-chat-header { background: #06CB3F !important; box-shadow: none !important; min-height: 68px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; }',
     '#blip-chat-header, #blip-chat-header * { color: #163134 !important; }',
 
     /* [cards] Remove o avatar ao lado das mensagens e o recuo que ele cria */
@@ -291,8 +297,12 @@
     '#app .web-link .bubble.right .text-wrapper:after { background: #FFFFFF !important; }',
 
     /* [oficial] Área de digitação */
-    /* Tamanho padrão da Blip, só cores */
-    '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; }',
+    /* Barra de digitação: 76px (14px a mais que o padrão) */
+    '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; min-height: 76px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; }',
+    /* [validar] A barra fica sobreposta ao fim da conversa. Este espaço extra vai no
+       fim da lista de mensagens (o elemento que contém 2+ grupos de mensagem),
+       para a última mensagem e o horário não ficarem escondidos atrás dela. */
+    '#app :has(> .blip-message-group + .blip-message-group) { padding-bottom: 16px !important; }',
     '#message-input textarea { background: #FFFFFF !important; color: #000 !important; font-size: 16px !important; }',
     '#message-input textarea::placeholder { color: #B9B5B4 !important; }',
     /* [validar] O Figma só tem anexo e microfone. Para esconder a câmera, descubra
