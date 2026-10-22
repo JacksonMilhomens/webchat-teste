@@ -282,12 +282,22 @@
     '#app .blip-card .notification, #app .blip-card .notification * { color: #818181 !important; font-size: 12px !important; }',
 
     /* [cards] Respostas rápidas (Aceito / Não aceito) */
-    '#app .select .options ul { padding-left: 0 !important; }',
+    '#app .select .options ul { padding-left: 10px !important; }',
     '#app .select .options li { background: #06CB3F !important; border: 0 !important; border-radius: 40px !important; height: 40px !important; padding: 0 26px !important; margin-right: 11px !important; opacity: 1 !important; box-shadow: none !important; }',
     '#app .select .options li, #app .select .options li * { color: #000 !important; font-size: 14px !important; font-weight: 500 !important; }',
     /* Depois da escolha, todas ficam cinza (como no Figma) */
     '#app .select .options li.pointer-default, #app .select .options li.unselected-option { background: #E4E4E4 !important; opacity: 1 !important; }',
     '#app .select .options li.pointer-default, #app .select .options li.pointer-default *, #app .select .options li.unselected-option * { color: #B9B5B4 !important; }',
+
+    /* [cards] Card de link (ex.: Política de Privacidade) */
+    '#app .web-link .bubble { padding: 0 !important; }',
+    '#app .web-link .bubble .web-link-wrapper .link-description-wrapper { padding: 16px 22px !important; min-height: 0 !important; gap: 4px; }',
+    '#app .web-link .bubble .big-text { font-size: 14px !important; font-weight: 500 !important; }',
+    '#app .web-link .bubble .light-text { font-size: 12px !important; font-weight: 400 !important; }',
+    '#app .web-link .bubble .small-text, #app .web-link .bubble .small-text * { font-size: 11px !important; color: #818181 !important; text-decoration: underline !important; }',
+    /* o quadradinho branco era uma máscara de reticências com fundo branco fixo */
+    '#app .web-link .bubble.left .text-wrapper:after { background: #E4E4E4 !important; }',
+    '#app .web-link .bubble.right .text-wrapper:after { background: #FFFFFF !important; }',
 
     /* [oficial] Área de digitação */
     '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; }',
