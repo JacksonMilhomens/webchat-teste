@@ -261,7 +261,10 @@
     /* O header cresceu para 90px; o conteúdo desce junto (senão a primeira
        mensagem fica atrás dele). A Blip calcula a altura do #app descontando
        o header original, então fixamos 100% para não sobrar faixa embaixo. */
-    '#app { padding-top: 90px !important; height: 100% !important; box-sizing: border-box !important; }',
+    /* A barra de digitação cresceu ~25px (de ~65px para 90px) e fica sobreposta ao
+       fim da conversa; o padding-bottom devolve esse espaço para a última
+       mensagem e o horário. Se ainda cortar, aumente; se sobrar espaço, diminua. */
+    '#app { padding-top: 90px !important; padding-bottom: 25px !important; height: 100% !important; box-sizing: border-box !important; }',
 
     /* [oficial] Header: 90px, verde, texto escuro. Nome e foto vêm do portal. */
     '#blip-chat-header { background: #06CB3F !important; min-height: 90px !important; box-sizing: border-box !important; padding-left: 13px !important; padding-right: 30px !important; display: flex !important; align-items: center !important; box-shadow: none !important; }',
