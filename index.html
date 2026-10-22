@@ -58,7 +58,7 @@
       bottom: var(--ib-base) !important;
       border-radius: 40px !important;
       box-shadow: 0 1px 10px rgba(0, 0, 0, 0.15) !important;
-      background: #F5F5F5 !important;
+      background: #FFFFFF !important;
       overflow: hidden;
     }
   }
@@ -251,7 +251,7 @@
     "@font-face { font-family: 'Intelbras Sans'; src: url('https://SEU-CDN/IntelbrasSans-Bold.woff2') format('woff2'); font-weight: 700; }",
     */
     ":root { --color-primary: #06CB3F; }",
-    "body, #app { background: #F5F5F5 !important; font-family: 'Intelbras Sans', Arial, sans-serif !important; }",
+    "body, #app { background: #FFFFFF !important; font-family: 'Intelbras Sans', Arial, sans-serif !important; }",
 
     /* ALTURAS: o padrão da Blip é ~52px no header e ~63px na barra de digitação.
        Para engordar ou afinar, mude os dois números abaixo (e o espaço extra
@@ -268,10 +268,10 @@
     '#app .blip-container--with-photo.left { margin-left: 0 !important; }',
     '#app .blip-container--with-photo.right { margin-right: 0 !important; }',
 
-    /* [cards] Balões: sem borda, raio 20px, texto preto 14px */
+    /* [cards] Balões: raio 20px, texto preto 14px. Bot cinza-claro; usuário branco com borda fina */
     '#app .bubble.left, #app .bubble.right { border: 0 !important; box-shadow: none !important; border-radius: 20px !important; font-size: 14px !important; line-height: 1.2 !important; padding: 16px 22px 16px 23px !important; max-width: 345px !important; box-sizing: border-box !important; }',
-    '#app .bubble.left { background: #E4E4E4 !important; }',
-    '#app .bubble.right { background: #FFFFFF !important; }',
+    '#app .bubble.left { background: #F5F5F5 !important; }',
+    '#app .bubble.right { background: #FFFFFF !important; border: 1px solid #DCDCDA !important; }',
     '#app .bubble.left, #app .bubble.left *, #app .bubble.right, #app .bubble.right * { color: #000 !important; }',
     '#app .bubble a { color: #000 !important; text-decoration: underline !important; }',
 
@@ -295,12 +295,12 @@
     '#app .web-link .bubble .light-text { font-size: 12px !important; font-weight: 400 !important; }',
     '#app .web-link .bubble .small-text, #app .web-link .bubble .small-text * { font-size: 11px !important; color: #818181 !important; text-decoration: underline !important; }',
     /* o quadradinho branco era uma máscara de reticências com fundo branco fixo */
-    '#app .web-link .bubble.left .text-wrapper:after { background: #E4E4E4 !important; }',
+    '#app .web-link .bubble.left .text-wrapper:after { background: #F5F5F5 !important; }',
     '#app .web-link .bubble.right .text-wrapper:after { background: #FFFFFF !important; }',
 
     /* [oficial] Área de digitação */
     /* Barra de digitação: 76px (14px a mais que o padrão) */
-    '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; min-height: 76px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; }',
+    '#message-input { background: #F5F5F5 !important; border: 0 !important; box-shadow: none !important; min-height: 76px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; }',
     /* [validar] A barra fica sobreposta ao fim da conversa. Este espaço extra vai no
        fim da lista de mensagens (o elemento que contém 2+ grupos de mensagem),
        para a última mensagem e o horário não ficarem escondidos atrás dela. */
@@ -310,7 +310,9 @@
        No Figma: verde do topo com a seta escura. O ícone usa currentColor. */
     '#blip-send-message { background-color: #06CB3F !important; }',
     '#blip-send-message .send-icon { color: #163134 !important; }',
-    '#message-input textarea { background: #FFFFFF !important; color: #000 !important; font-size: 16px !important; }',
+    '#message-input textarea { background: #F5F5F5 !important; color: #000 !important; font-size: 16px !important; }',
+    /* [validar] Pinta também o rodapé onde ficam a barra e o botão de enviar */
+    '#app :has(> #message-input), #app :has(> #blip-send-message) { background: #F5F5F5 !important; }',
     '#message-input textarea::placeholder { color: #B9B5B4 !important; }',
     /* [validar] O Figma só tem anexo e microfone. Para esconder a câmera, descubra
        a posição dela no DevTools e descomente/ajuste:
