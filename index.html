@@ -33,8 +33,6 @@
     --ib-badge: 22px;        /* X de recolher */
     --ib-direita: 35px;      /* distância da borda direita */
     --ib-base: 24px;         /* distância da borda inferior */
-    --ib-chat-largura: 450px;
-    --ib-chat-altura: 600px;
     --ib-chat-gap: 12px;     /* espaço entre a janela e o botão X */
   }
   @media (max-width: 480px) {
@@ -52,20 +50,16 @@
   }
 
   /* ---------- Janela do chat (desktop) ----------
+     Tamanho é o padrão da Blip; aqui só mudam posição, cantos e sombra.
      No celular a Blip abre em tela cheia; por isso só mexemos acima de 480px. */
   @media (min-width: 481px) and (min-height: 421px) {
     #blip-chat-container #blip-chat-iframe {
       right: calc(var(--ib-direita) + var(--ib-fab) + var(--ib-chat-gap)) !important;
       bottom: var(--ib-base) !important;
-      width: min(var(--ib-chat-largura), calc(100vw - var(--ib-direita) - var(--ib-fab) - var(--ib-chat-gap) - 24px)) !important;
       border-radius: 40px !important;
       box-shadow: 0 1px 10px rgba(0, 0, 0, 0.15) !important;
       background: #F5F5F5 !important;
       overflow: hidden;
-    }
-    #blip-chat-container #blip-chat-iframe.blip-chat-iframe-opened {
-      height: min(var(--ib-chat-altura), calc(100vh - var(--ib-base) * 2)) !important;
-      max-height: none !important;
     }
   }
 
@@ -258,19 +252,10 @@
     */
     ":root { --color-primary: #06CB3F; }",
     "body, #app { background: #F5F5F5 !important; font-family: 'Intelbras Sans', Arial, sans-serif !important; }",
-    /* O header cresceu para 90px; o conteúdo desce junto (senão a primeira
-       mensagem fica atrás dele). A Blip calcula a altura do #app descontando
-       o header original, então fixamos 100% para não sobrar faixa embaixo. */
-    /* A barra de digitação cresceu ~25px (de ~65px para 90px) e fica sobreposta ao
-       fim da conversa; o padding-bottom devolve esse espaço para a última
-       mensagem e o horário. Se ainda cortar, aumente; se sobrar espaço, diminua. */
-    '#app { padding-top: 90px !important; padding-bottom: 25px !important; height: 100% !important; box-sizing: border-box !important; }',
 
-    /* [oficial] Header: 90px, verde, texto escuro. Nome e foto vêm do portal. */
-    '#blip-chat-header { background: #06CB3F !important; min-height: 90px !important; box-sizing: border-box !important; padding-left: 13px !important; padding-right: 30px !important; display: flex !important; align-items: center !important; box-shadow: none !important; }',
+    /* [oficial] Header: tamanho padrão da Blip, só cores. Nome e foto vêm do portal. */
+    '#blip-chat-header { background: #06CB3F !important; box-shadow: none !important; }',
     '#blip-chat-header, #blip-chat-header * { color: #163134 !important; }',
-    /* [validar] foto do bot no header: 55px */
-    '#blip-chat-header img { width: 55px !important; height: 55px !important; border-radius: 50% !important; background: #fff !important; }',
 
     /* [cards] Remove o avatar ao lado das mensagens e o recuo que ele cria */
     '#app .blip-card-photo { display: none !important; }',
@@ -306,19 +291,17 @@
     '#app .web-link .bubble.right .text-wrapper:after { background: #FFFFFF !important; }',
 
     /* [oficial] Área de digitação */
-    /* Mesma altura do header (90px), como no Figma. O texto começa a 30px da borda. */
-    '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; min-height: 90px !important; box-sizing: border-box !important; display: flex !important; align-items: center !important; padding-left: 12px !important; padding-right: 9px !important; }',
+    /* Tamanho padrão da Blip, só cores */
+    '#message-input { background: #FFFFFF !important; border: 0 !important; box-shadow: none !important; }',
     '#message-input textarea { background: #FFFFFF !important; color: #000 !important; font-size: 16px !important; }',
     '#message-input textarea::placeholder { color: #B9B5B4 !important; }',
     /* [validar] O Figma só tem anexo e microfone. Para esconder a câmera, descubra
        a posição dela no DevTools e descomente/ajuste:
     '#message-input .message-options > :nth-child(2) { display: none !important; }', */
 
-    /* Celular: no Figma as margens laterais caem de 30px para 15px */
+    /* Celular: balões até 300px, como no Figma */
     '@media (max-width: 480px) {' +
-      ' #blip-chat-header { padding-left: 0 !important; padding-right: 15px !important; }' +
       ' #app .bubble.left, #app .bubble.right { max-width: 300px !important; padding: 16px 19px 16px 21px !important; }' +
-      ' #message-input { padding-left: 0 !important; padding-right: 0 !important; }' +
     ' }',
 
     /* Barra de rolagem fina */
