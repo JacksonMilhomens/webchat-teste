@@ -259,9 +259,10 @@
     */
     ":root { --color-primary: #06CB3F; }",
     "body, #app { background: #F5F5F5 !important; font-family: 'Intelbras Sans', Arial, sans-serif !important; }",
-    /* [validar] O header cresceu para 90px; o conteúdo precisa descer junto,
-       senão a primeira mensagem fica escondida atrás dele */
-    '#app { padding-top: 90px !important; box-sizing: border-box !important; }',
+    /* O header cresceu para 90px; o conteúdo desce junto (senão a primeira
+       mensagem fica atrás dele). A Blip calcula a altura do #app descontando
+       o header original, então fixamos 100% para não sobrar faixa embaixo. */
+    '#app { padding-top: 90px !important; height: 100% !important; box-sizing: border-box !important; }',
 
     /* [oficial] Header: 90px, verde, texto escuro. Nome e foto vêm do portal. */
     '#blip-chat-header { background: #06CB3F !important; min-height: 90px !important; box-sizing: border-box !important; padding-left: 13px !important; padding-right: 30px !important; display: flex !important; align-items: center !important; box-shadow: none !important; }',
