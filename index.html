@@ -287,8 +287,10 @@
     '#app .select .options li.pointer-default, #app .select .options li.pointer-default *, #app .select .options li.unselected-option * { color: #B9B5B4 !important; }',
 
     /* [cards] Card de link (ex.: Política de Privacidade) */
-    '#app .web-link .bubble { padding: 0 !important; }',
-    '#app .web-link .bubble .web-link-wrapper .link-description-wrapper { padding: 16px 22px !important; min-height: 0 !important; gap: 4px; }',
+    '#app .web-link .bubble.left, #app .web-link .bubble.right { padding: 0 !important; }',
+    '#app .web-link .bubble .web-link-wrapper .link-description-wrapper { padding: 16px 22px 16px 23px !important; min-height: 0 !important; gap: 4px; }',
+    '#app .web-link .bubble .web-link-wrapper .link-description-wrapper .text-wrapper { text-align: left !important; margin-right: 0 !important; }',
+    '#app .web-link .bubble .web-link-wrapper .link-description-wrapper .space-between-text { flex-grow: 0 !important; height: 4px; }',
     '#app .web-link .bubble .big-text { font-size: 14px !important; font-weight: 500 !important; }',
     '#app .web-link .bubble .light-text { font-size: 12px !important; font-weight: 400 !important; }',
     '#app .web-link .bubble .small-text, #app .web-link .bubble .small-text * { font-size: 11px !important; color: #818181 !important; text-decoration: underline !important; }',
@@ -303,6 +305,11 @@
        fim da lista de mensagens (o elemento que contém 2+ grupos de mensagem),
        para a última mensagem e o horário não ficarem escondidos atrás dela. */
     '#app :has(> .blip-message-group + .blip-message-group) { padding-bottom: 16px !important; }',
+    /* [validar] Botão de enviar: a Blip escurece sozinha a cor dos componentes nesse
+       botão. Ele só aparece quando há texto digitado e, nesse momento, é o último
+       botão da barra. No Figma: círculo verde do topo com a seta escura. */
+    '#message-input:has(textarea:not(:placeholder-shown)) button:last-of-type { background: #06CB3F !important; border-color: #06CB3F !important; }',
+    '#message-input:has(textarea:not(:placeholder-shown)) button:last-of-type svg, #message-input:has(textarea:not(:placeholder-shown)) button:last-of-type svg * { fill: #163134 !important; color: #163134 !important; }',
     '#message-input textarea { background: #FFFFFF !important; color: #000 !important; font-size: 16px !important; }',
     '#message-input textarea::placeholder { color: #B9B5B4 !important; }',
     /* [validar] O Figma só tem anexo e microfone. Para esconder a câmera, descubra
